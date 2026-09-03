@@ -98,7 +98,7 @@ export function SummaryCards({ result, entries }: SummaryCardsProps) {
               <span className="font-mono font-bold text-foreground">
                 $ {fmtUsd(result.requiredUsd)}
               </span>{" "}
-              (≈ Rp {fmtRp(result.requiredRp)}) dengan buffer.
+              (≈ Rp {fmtRp(result.requiredRp)}) dengan tambahan buffer 20%.
             </>
           ) : (
             <>
