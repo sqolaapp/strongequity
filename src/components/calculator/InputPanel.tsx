@@ -40,7 +40,7 @@ export function InputPanel({
 
       <div className="mt-3 grid grid-cols-3 gap-2 md:grid-cols-5">
         <NumberField
-          label="Point"
+          label="JARAK (POINT)"
           hint="Jarak antar entry (pips)"
           value={input.point}
           onChange={(v) => onChange("point", v)}
