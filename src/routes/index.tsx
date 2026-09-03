@@ -102,9 +102,11 @@ function Index() {
         <EntriesTable rows={result.rows} />
 
         <footer className="pb-4 text-[10px] leading-relaxed text-muted-foreground">
-          Rumus: lot entry ke-i = lot × multiplier^(i−1); jarak entry ke-i = (entries + 1 − i) ×
-          point; floating loss = lot × jarak × nilai per pip. Skenario terburuk: harga menembus
-          semua entry sampai titik terjauh. Preset disimpan di browser Anda (local storage).
+          Rumus: lot entry ke-i = lot × multiplier^(i−1); floating loss entry ke-i = lot × (entries
+          + 1 − i) × point × nilai per pip. BUY: loss menumpuk dari atas, profit dihitung dari
+          entry paling bawah ke atas (grid 1, 2, 3, ...). SELL: dibalik. Skenario terburuk: harga
+          menembus semua entry sampai titik terjauh. Preset disimpan di browser Anda (local
+          storage).
         </footer>
       </div>
     </main>
