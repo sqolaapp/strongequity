@@ -112,18 +112,11 @@ export function computeKetahanan(input: CalcInput): CalcResult {
             : "loss";
     // Entry loss: floating sesuai jarak ke titik terjauh.
     // Entry profit: makin jauh dari titik balik (BEP) makin besar profitnya (1, 2, 3, ... grid).
-    const profitGrid =
-      input.direction === "buy" ? i - lossEntries - 1 : profitEntries + 1 - i;
+    const profitGrid = input.direction === "buy" ? i - lossEntries - 1 : profitEntries + 1 - i;
     // Jarak floating entry loss diukur dari titik terjauh, yaitu entry loss TERAKHIR
     // (bukan entry terakhir), sehingga berubah mengikuti jumlah entry loss.
-    const lossGrid =
-      input.direction === "buy" ? lossEntries + 1 - i : i - profitEntries - 1;
-    const distancePips =
-      status === "profit"
-        ? profitGrid * input.point
-        : status === "bep"
-          ? 0
-          : lossGrid * input.point;
+    const lossGrid = input.direction === "buy" ? lossEntries + 1 - i : i - profitEntries - 1;
+    const distancePips = status === "profit" ? profitGrid * input.point : status === "bep" ? 0 : lossGrid * input.point;
     const plCent =
       status === "profit"
         ? lossCentAt(lot, distancePips, pipValueCent)
@@ -177,8 +170,7 @@ export function computeKetahanan(input: CalcInput): CalcResult {
     requiredRp: requiredUsd * input.kurs,
     blownAtEntry,
     survivedEntries: blownAtEntry === null ? input.entries : blownAtEntry - 1,
-    maxDistanceFirstEntryPips:
-      firstLot > 0 && pipValueCent > 0 ? modalCent / (firstLot * pipValueCent) : 0,
+    maxDistanceFirstEntryPips: firstLot > 0 && pipValueCent > 0 ? modalCent / (firstLot * pipValueCent) : 0,
     netProfitUsd,
     netProfitPct,
   };
@@ -214,7 +206,7 @@ export const DEFAULT_INPUT: CalcInput = {
   direction: "buy",
   kurs: 17653,
   pipValueCent: 100,
-  modalUsd: 3000,
+  modalUsd: 10000,
   bufferPct: 20,
 };
 
