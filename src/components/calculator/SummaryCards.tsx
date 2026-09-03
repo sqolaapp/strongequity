@@ -7,14 +7,12 @@ interface SummaryCardsProps {
 }
 
 function riskTone(pct: number): { label: string; className: string } {
-  if (pct <= 30)
-    return { label: "AMAN", className: "text-primary border-primary/40 bg-primary/10" };
-  if (pct <= 70)
-    return { label: "WASPADA", className: "text-accent border-accent/40 bg-accent/10" };
-  return { label: "BAHAYA", className: "text-destructive border-destructive/40 bg-destructive/10" };
+  if (pct <= 30) return { label: "AMAN", className: "bg-primary text-primary-foreground" };
+  if (pct <= 70) return { label: "WASPADA", className: "bg-accent text-accent-foreground" };
+  return { label: "BAHAYA", className: "bg-destructive text-destructive-foreground" };
 }
 
-function BigCard({
+function StatCard({
   label,
   value,
   suffix,
@@ -26,25 +24,21 @@ function BigCard({
   highlight?: boolean;
 }) {
   return (
-    <div
-      className={`rounded-xl border p-4 ${
-        highlight
-          ? "border-primary/50 bg-primary/10"
-          : "border-border bg-card"
-      }`}
-    >
-      <p className="font-display text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+    <div className={`brutal p-2.5 ${highlight ? "bg-primary" : "bg-card"}`}>
+      <p
+        className={`font-display text-[9px] font-bold uppercase tracking-widest ${
+          highlight ? "text-primary-foreground" : "text-muted-foreground"
+        }`}
+      >
         {label}
       </p>
       <p
-        className={`mt-1 font-mono text-xl font-semibold sm:text-2xl ${
-          highlight ? "text-primary" : "text-foreground"
+        className={`mt-0.5 font-mono text-sm font-bold sm:text-base ${
+          highlight ? "text-primary-foreground" : "text-foreground"
         }`}
       >
         {value}
-        {suffix ? (
-          <span className="ml-1 text-sm font-medium text-muted-foreground">{suffix}</span>
-        ) : null}
+        {suffix ? <span className="ml-0.5 text-[10px]">{suffix}</span> : null}
       </p>
     </div>
   );
@@ -55,43 +49,39 @@ export function SummaryCards({ result, modalUsd }: SummaryCardsProps) {
   const tone = riskTone(pct);
 
   return (
-    <section aria-label="Ringkasan hasil" className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <BigCard label="Total (Cent)" value={fmtCent(result.totalCent)} suffix="¢" highlight />
-        <BigCard label="Total (USD)" value={`$ ${fmtUsd(result.totalUsd)}`} />
-        <BigCard label="Total (Rupiah)" value={`Rp ${fmtRp(result.totalRp)}`} />
+    <section aria-label="Ringkasan hasil" className="flex flex-col gap-2.5">
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+        <StatCard label="Total Cent" value={fmtCent(result.totalCent)} suffix="¢" highlight />
+        <StatCard label="Total USD" value={`$ ${fmtUsd(result.totalUsd)}`} />
+        <StatCard label="Total Rupiah" value={`Rp ${fmtRp(result.totalRp)}`} />
       </div>
 
-      <div className="rounded-xl border border-border bg-card p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="brutal bg-card p-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <p className="font-display text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Persen risiko terhadap modal
+            <p className="font-display text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+              Risiko terhadap modal
             </p>
-            <p className="mt-1 font-mono text-3xl font-bold text-foreground">
-              {fmtPct(pct)}
-            </p>
+            <p className="font-mono text-xl font-bold text-foreground">{fmtPct(pct)}</p>
           </div>
           <span
-            className={`rounded-full border px-4 py-1.5 font-display text-xs font-bold tracking-widest ${tone.className}`}
+            className={`brutal px-2.5 py-1 font-display text-[10px] font-bold tracking-widest ${tone.className}`}
           >
             {tone.label}
           </span>
         </div>
-        <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-muted">
+        <div className="brutal mt-2.5 h-3 w-full overflow-hidden bg-muted p-0">
           <div
-            className="h-full rounded-full bg-primary transition-all duration-500"
+            className="h-full bg-primary transition-all duration-300"
             style={{ width: `${Math.min(100, pct)}%` }}
           />
         </div>
-        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-          Equity minimum yang harus Anda siapkan agar strategi ini tetap bertahan
-          sampai entry terakhir adalah{" "}
-          <span className="font-mono font-semibold text-foreground">
+        <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
+          Equity minimum agar bertahan sampai entry terakhir:{" "}
+          <span className="font-mono font-bold text-foreground">
             $ {fmtUsd(result.totalUsd)}
           </span>{" "}
-          (≈ Rp {fmtRp(result.totalRp)}). Jika modal di bawah angka itu, akun
-          berisiko margin call sebelum harga berbalik.
+          (≈ Rp {fmtRp(result.totalRp)}).
         </p>
       </div>
     </section>
