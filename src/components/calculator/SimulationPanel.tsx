@@ -1,9 +1,11 @@
 import { Pause, Play, RotateCcw } from "lucide-react";
-import type { CalcResult, Currency } from "@/lib/ketahanan";
+import type { Currency, SimFrame } from "@/lib/ketahanan";
 import { fmtLot, fmtMoney, fmtMoneySigned, fmtPct } from "@/lib/ketahanan";
 
 interface SimulationPanelProps {
-  result: CalcResult;
+  frame: SimFrame;
+  totalSteps: number;
+  entries: number;
   currency: Currency;
   kurs: number;
   modalUsd: number;
@@ -16,7 +18,9 @@ interface SimulationPanelProps {
 }
 
 export function SimulationPanel({
-  result,
+  frame,
+  totalSteps,
+  entries,
   currency,
   kurs,
   modalUsd,
@@ -27,29 +31,28 @@ export function SimulationPanel({
   onToggle,
   onReset,
 }: SimulationPanelProps) {
-  const rows = result.rows;
-
-  const current = step > 0 ? (rows[step - 1] ?? null) : null;
-  const netCent = current ? current.cumPlCent : 0;
-  const equityUsd = current ? current.equityLeftUsd : modalUsd;
-  const openLot = rows.slice(0, step).reduce((a, r) => a + r.lot, 0);
+  const netCent = frame.netCent;
+  const equityUsd = frame.equityLeftUsd;
+  const openLot = frame.totalLot;
   const drawdownPct = modalUsd > 0 ? Math.max(0, (-netCent / 100 / modalUsd) * 100) : 0;
-  const blown = current?.blown ?? false;
+  const blown = frame.blown;
   const phase =
-    current === null
+    frame.phase === "idle"
       ? "SIAP"
       : blown
         ? "MARGIN CALL"
-        : current.status === "loss"
+        : frame.phase === "loss"
           ? "FLOATING LOSS"
-          : current.status === "bep"
-            ? "TITIK BALIK (BEP)"
-            : "FLOATING PROFIT";
+          : frame.phase === "bottom"
+            ? "TITIK TERJAUH"
+            : frame.phase === "recover"
+              ? "HARGA BERBALIK"
+              : "SELESAI";
   const phaseClass = blown
     ? "bg-destructive text-destructive-foreground"
-    : current?.status === "profit"
+    : frame.phase === "recover" || frame.phase === "done"
       ? "bg-primary text-primary-foreground"
-      : current?.status === "loss"
+      : frame.phase === "loss" || frame.phase === "bottom"
         ? "bg-accent text-accent-foreground"
         : "bg-secondary text-secondary-foreground";
 
@@ -98,7 +101,14 @@ export function SimulationPanel({
       </header>
 
       <div className="grid grid-cols-2 gap-x-3 sm:grid-cols-4">
-        <Cell label="Entry berjalan" value={`${step} / ${rows.length}`} />
+        <Cell
+          label={frame.phase === "recover" || frame.phase === "done" ? "Balik (grid)" : "Entry masuk"}
+          value={
+            frame.phase === "recover" || frame.phase === "done"
+              ? `${frame.retrace} grid`
+              : `${frame.opened} / ${entries}`
+          }
+        />
         <Cell label="Total lot open" value={fmtLot(openLot)} />
         <Cell
           label="Floating P/L"
@@ -116,19 +126,21 @@ export function SimulationPanel({
         <div className="brutal h-2.5 w-full overflow-hidden bg-muted p-0">
           <div
             className={`h-full transition-all duration-300 ${blown ? "bg-destructive" : netCent >= 0 ? "bg-primary" : "bg-accent"}`}
-            style={{ width: `${Math.min(100, netCent >= 0 ? (step / Math.max(1, rows.length)) * 100 : drawdownPct)}%` }}
+            style={{ width: `${Math.min(100, netCent >= 0 ? (step / Math.max(1, totalSteps)) * 100 : drawdownPct)}%` }}
           />
         </div>
         <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">
-          {current === null
-            ? "Tekan play untuk mensimulasikan entry satu per satu: floating loss menumpuk dulu, lalu berbalik jadi floating profit."
+          {frame.phase === "idle"
+            ? `Tekan play: semua ${entries} entry dibuka dulu sampai titik terjauh (full floating loss), baru harga berbalik menutup loss jadi profit.`
             : blown
-              ? `Modal habis di entry #${current.index} — drawdown ${fmtPct(drawdownPct)} dari modal.`
-              : current.status === "profit"
-                ? `Entry #${current.index} lot ${fmtLot(current.lot)} — harga berbalik, floating loss mulai tertutup. Profit entry ini ${fmtMoney(current.plCent, currency, kurs)}.`
-                : current.status === "bep"
-                  ? `Entry #${current.index} berada di titik balik (0). Setelah ini floating berubah jadi profit.`
-                  : `Entry #${current.index} lot ${fmtLot(current.lot)} — floating loss ${fmtMoney(current.plCent, currency, kurs)}, drawdown ${fmtPct(drawdownPct)} dari modal.`}
+              ? `Modal habis di entry #${frame.opened} — drawdown ${fmtPct(drawdownPct)} dari modal.`
+              : frame.phase === "loss"
+                ? `Entry #${frame.opened} masuk, floating loss ${fmtMoney(netCent, currency, kurs)} (${fmtPct(drawdownPct)} dari modal). Harga masih turun.`
+                : frame.phase === "bottom"
+                  ? `Semua ${entries} entry terbuka di titik terjauh. Floating loss maksimum ${fmtMoney(netCent, currency, kurs)} — ${fmtPct(drawdownPct)} dari modal.`
+                  : frame.phase === "recover"
+                    ? `Harga berbalik ${frame.retrace} grid — floating sekarang ${fmtMoneySigned(netCent, currency, kurs)}, total lot ${fmtLot(openLot)}.`
+                    : `Selesai: harga berbalik ${frame.retrace} grid, hasil akhir ${fmtMoneySigned(netCent, currency, kurs)}.`}
         </p>
       </div>
     </section>
