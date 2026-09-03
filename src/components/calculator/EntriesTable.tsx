@@ -79,10 +79,11 @@ export function EntriesTable({
             </tr>
           </thead>
           <tbody>
-            {shownRows.map((row) => (
+            {shownRows.map((row, i) => (
               <tr
                 key={row.index}
-                className={`animate-fade-in border-b border-border/40 last:border-0 ${
+                style={{ animationDelay: `${Math.min(i, 12) * 28}ms` }}
+                className={`anim-row-in border-b border-border/40 transition-colors duration-300 last:border-0 ${
                   row.blown
                     ? "bg-destructive/15"
                     : row.status === "profit"
@@ -92,6 +93,8 @@ export function EntriesTable({
                         : ""
                 }`}
               >
+
+
                 <td className="px-1.5 py-0.5 text-left text-muted-foreground">
                   {row.index}
                   <span
@@ -140,7 +143,11 @@ export function EntriesTable({
           </tbody>
         </table>
         {simNote ? (
-          <p className="border-t-2 border-border px-3 py-1.5 text-left font-display text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+          <p
+            key={simNote}
+            className="anim-row-in border-t-2 border-border px-3 py-1.5 text-left font-display text-[9px] font-bold uppercase tracking-widest text-muted-foreground"
+          >
+
             {simNote}
           </p>
         ) : null}

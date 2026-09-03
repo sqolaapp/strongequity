@@ -99,67 +99,75 @@ function Index() {
         </header>
 
         {note ? (
-          <p className="brutal bg-primary px-2.5 py-1.5 font-display text-[10px] font-bold uppercase tracking-widest text-primary-foreground">
+          <p className="brutal anim-row-in bg-primary px-2.5 py-1.5 font-display text-[10px] font-bold uppercase tracking-widest text-primary-foreground">
             {note}
           </p>
         ) : null}
 
-        <InputPanel
-          input={input}
-          onChange={update}
-          onReset={() => setInput(DEFAULT_INPUT)}
-          kursLoading={kurs.loading}
-          kursError={kurs.error}
-          kursUpdatedAt={kurs.updatedAt}
-          onRefreshKurs={kurs.refresh}
-        />
+        <div className="anim-section" style={{ animationDelay: "60ms" }}>
+          <InputPanel
+            input={input}
+            onChange={update}
+            onReset={() => setInput(DEFAULT_INPUT)}
+            kursLoading={kurs.loading}
+            kursError={kurs.error}
+            kursUpdatedAt={kurs.updatedAt}
+            onRefreshKurs={kurs.refresh}
+          />
+        </div>
 
         <div
-          className={
-            pending ? "flex flex-col gap-3 opacity-50 transition-opacity" : "flex flex-col gap-3 transition-opacity"
-          }
+          className={`soft-swap flex flex-col gap-3 ${
+            pending ? "scale-[0.995] opacity-45 blur-[1px]" : "scale-100 opacity-100 blur-0"
+          }`}
         >
-        <SimulationPanel
-          frame={frame}
-          totalSteps={totalSteps}
-          entries={debouncedInput.entries}
-          currency={currency}
-          kurs={debouncedInput.kurs}
-          modalUsd={debouncedInput.modalUsd}
-          step={sim.step}
-          playing={sim.playing}
-          speedMs={sim.speedMs}
-          onSpeedChange={sim.setSpeedMs}
-          onToggle={sim.toggle}
-          onReset={sim.reset}
-        />
+          <div className="anim-section" style={{ animationDelay: "140ms" }}>
+            <SimulationPanel
+              frame={frame}
+              totalSteps={totalSteps}
+              entries={debouncedInput.entries}
+              currency={currency}
+              kurs={debouncedInput.kurs}
+              modalUsd={debouncedInput.modalUsd}
+              step={sim.step}
+              playing={sim.playing}
+              speedMs={sim.speedMs}
+              onSpeedChange={sim.setSpeedMs}
+              onToggle={sim.toggle}
+              onReset={sim.reset}
+            />
+          </div>
 
-        <EntriesTable
-          rows={sim.running ? frame.rows : result.rows}
-          entries={debouncedInput.entries}
-          lossEntries={input.lossEntries}
-          onLossEntriesChange={(v) => update("lossEntries", v)}
-          currency={currency}
-          onCurrencyChange={setCurrency}
-          kurs={debouncedInput.kurs}
-          simNote={
-            sim.running
-              ? frame.phase === "recover" || frame.phase === "done"
-                ? `Harga berbalik ${frame.retrace} grid — ${frame.opened} entry terbuka`
-                : `Simulasi berjalan… ${frame.opened} / ${debouncedInput.entries} entry masuk`
-              : undefined
-          }
-        />
+          <div className="anim-section" style={{ animationDelay: "220ms" }}>
+            <EntriesTable
+              rows={sim.running ? frame.rows : result.rows}
+              entries={debouncedInput.entries}
+              lossEntries={input.lossEntries}
+              onLossEntriesChange={(v) => update("lossEntries", v)}
+              currency={currency}
+              onCurrencyChange={setCurrency}
+              kurs={debouncedInput.kurs}
+              simNote={
+                sim.running
+                  ? frame.phase === "recover" || frame.phase === "done"
+                    ? `Harga berbalik ${frame.retrace} grid — ${frame.opened} entry terbuka`
+                    : `Simulasi berjalan… ${frame.opened} / ${debouncedInput.entries} entry masuk`
+                  : undefined
+              }
+            />
+          </div>
 
-
-        <SummaryCards
-          result={result}
-          entries={debouncedInput.entries}
-          currency={currency}
-          kurs={debouncedInput.kurs}
-          lossEntries={debouncedInput.lossEntries}
-        />
+          <div className="anim-section" style={{ animationDelay: "300ms" }}>
+            <SummaryCards
+              result={result}
+              entries={debouncedInput.entries}
+              currency={currency}
+              kurs={debouncedInput.kurs}
+              lossEntries={debouncedInput.lossEntries}
+            />
+          </div>
         </div>
+
 
         <footer className="pb-4 text-[10px] leading-relaxed text-muted-foreground">
           Rumus: lot entry ke-i = lot × multiplier^(i−1); floating loss entry ke-i = lot × (entries

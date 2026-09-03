@@ -160,10 +160,123 @@
   border: 2px solid var(--border);
   box-shadow: var(--brutal-shadow);
   transition:
-    box-shadow 0.1s ease,
-    transform 0.1s ease;
+    box-shadow 0.15s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.15s cubic-bezier(0.22, 1, 0.36, 1);
   &:hover {
     box-shadow: 1px 1px 0 0 var(--border);
     transform: translate(2px, 2px);
   }
+  &:active {
+    box-shadow: 0 0 0 0 var(--border);
+    transform: translate(3px, 3px);
+  }
 }
+
+/* ---------- Motion ---------- */
+
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scaleY(0.9);
+    filter: blur(1px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes value-pop {
+  0% {
+    transform: translateY(3px);
+    opacity: 0.35;
+  }
+  60% {
+    transform: translateY(-1px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes section-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes live-pulse {
+  0%,
+  100% {
+    box-shadow: var(--brutal-shadow);
+  }
+  50% {
+    box-shadow: var(--brutal-shadow), 0 0 0 4px color-mix(in oklab, var(--primary) 35%, transparent);
+  }
+}
+
+@keyframes bar-stripes {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 24px 0;
+  }
+}
+
+@utility anim-row-in {
+  animation: row-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility anim-value {
+  animation: value-pop 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  display: inline-block;
+}
+
+@utility anim-section {
+  animation: section-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility anim-live {
+  animation: live-pulse 1.4s ease-in-out infinite;
+}
+
+@utility bar-live {
+  background-image: linear-gradient(
+    115deg,
+    color-mix(in oklab, var(--background) 35%, transparent) 25%,
+    transparent 25%,
+    transparent 50%,
+    color-mix(in oklab, var(--background) 35%, transparent) 50%,
+    color-mix(in oklab, var(--background) 35%, transparent) 75%,
+    transparent 75%
+  );
+  background-size: 24px 24px;
+  animation: bar-stripes 0.7s linear infinite;
+}
+
+@utility soft-swap {
+  transition:
+    opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
