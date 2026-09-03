@@ -32,12 +32,17 @@ function Row({
         ? "text-destructive"
         : "text-foreground";
   return (
-    <div className="flex items-baseline justify-between gap-3 border-b-2 border-foreground/10 px-3 py-2 last:border-b-0">
+    <div className="flex items-baseline justify-between gap-3 border-b-2 border-foreground/10 px-3 py-2 transition-colors duration-300 last:border-b-0">
       <p className="text-[11px] leading-snug text-muted-foreground">{label}</p>
-      <p className={`shrink-0 font-mono text-xs font-bold sm:text-sm ${fg}`}>{value}</p>
+      <p className={`shrink-0 font-mono text-xs font-bold sm:text-sm ${fg}`}>
+        <span key={value} className="anim-value">
+          {value}
+        </span>
+      </p>
     </div>
   );
 }
+
 
 export function SummaryCards({
   result,
