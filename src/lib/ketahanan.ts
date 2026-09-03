@@ -114,12 +114,16 @@ export function computeKetahanan(input: CalcInput): CalcResult {
     // Entry profit: makin jauh dari titik balik (BEP) makin besar profitnya (1, 2, 3, ... grid).
     const profitGrid =
       input.direction === "buy" ? i - lossEntries - 1 : profitEntries + 1 - i;
+    // Jarak floating entry loss diukur dari titik terjauh, yaitu entry loss TERAKHIR
+    // (bukan entry terakhir), sehingga berubah mengikuti jumlah entry loss.
+    const lossGrid =
+      input.direction === "buy" ? lossEntries + 1 - i : i - profitEntries - 1;
     const distancePips =
       status === "profit"
         ? profitGrid * input.point
         : status === "bep"
           ? 0
-          : distanceAt(input.point, input.entries, i);
+          : lossGrid * input.point;
     const plCent =
       status === "profit"
         ? lossCentAt(lot, distancePips, pipValueCent)
