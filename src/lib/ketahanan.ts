@@ -33,9 +33,9 @@ export function distanceAt(point: number, entries: number, index: number): numbe
   return (entries + 1 - index) * point;
 }
 
-/** Floating loss satu entry dalam CENT (10 cent per pip per 1.0 lot). */
+/** Floating loss satu entry dalam CENT (100 cent per pip per 1,00 lot). */
 export function lossCentAt(lot: number, distancePips: number): number {
-  return lot * distancePips * 10;
+  return lot * distancePips * 100;
 }
 
 export function computeKetahanan(input: CalcInput): CalcResult {
