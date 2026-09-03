@@ -87,7 +87,15 @@ function Index() {
           </p>
         ) : null}
 
-        <InputPanel input={input} onChange={update} onReset={() => setInput(DEFAULT_INPUT)} />
+        <InputPanel
+          input={input}
+          onChange={update}
+          onReset={() => setInput(DEFAULT_INPUT)}
+          kursLoading={kurs.loading}
+          kursError={kurs.error}
+          kursUpdatedAt={kurs.updatedAt}
+          onRefreshKurs={kurs.refresh}
+        />
 
         <SummaryCards result={result} entries={input.entries} />
 
