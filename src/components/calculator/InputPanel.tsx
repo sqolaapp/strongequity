@@ -38,7 +38,7 @@ export function InputPanel({
         </button>
       </div>
 
-      <div className="mt-3 grid grid-cols-3 gap-2 md:grid-cols-5">
+      <div className="mt-3 grid grid-cols-3 gap-2 md:grid-cols-6">
         <NumberField
           label="JARAK (POINT)"
           hint="Jarak antar entry (pips)"
@@ -55,7 +55,19 @@ export function InputPanel({
           label="Entries"
           hint="Maks 200"
           value={input.entries}
-          onChange={(v) => onChange("entries", Math.max(1, Math.min(200, Math.round(v))))}
+          onChange={(v) => {
+            const entries = Math.max(1, Math.min(200, Math.round(v)));
+            onChange("entries", entries);
+            if (input.lossEntries > entries) onChange("lossEntries", entries);
+          }}
+        />
+        <NumberField
+          label="Entry Loss"
+          hint="Sisanya profit (TP 1 grid)"
+          value={input.lossEntries}
+          onChange={(v) =>
+            onChange("lossEntries", Math.max(0, Math.min(input.entries, Math.round(v))))
+          }
         />
         <NumberField
           label="Modal $"

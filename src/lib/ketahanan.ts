@@ -3,6 +3,8 @@ export interface CalcInput {
   lot: number; // lot awal
   multiplier: number; // 1 = flat, >1 = martingale
   entries: number; // jumlah entry
+  /** Berapa entry yang berakhir loss. Sisanya (entries - lossEntries) profit dengan TP 1 grid. */
+  lossEntries: number;
   kurs: number; // USD -> IDR
   pipValueCent: number; // nilai 1 pip untuk 1,00 lot (dalam cent). Default 100¢ = $1
   modalUsd: number; // equity yang Anda punya
@@ -13,10 +15,13 @@ export interface EntryRow {
   index: number;
   lot: number;
   distancePips: number;
-  lossCent: number;
-  cumLossCent: number;
+  /** P/L entry ini dalam CENT: negatif = loss, positif = profit. */
+  plCent: number;
+  /** Akumulasi P/L bersih sampai entry ini (cent). Negatif = floating loss. */
+  cumPlCent: number;
   cumLot: number;
-  /** Sisa equity (USD) jika harga sampai di titik terjauh dan entry ini sudah terbuka. */
+  isProfit: boolean;
+  /** Sisa equity (USD) pada titik akumulasi entry ini. */
   equityLeftUsd: number;
   /** True jika akumulasi floating loss sampai entry ini sudah melebihi modal. */
   blown: boolean;
@@ -24,17 +29,26 @@ export interface EntryRow {
 
 export interface CalcResult {
   rows: EntryRow[];
+  /** P/L bersih total (cent). Negatif = loss, positif = profit. */
   totalCent: number;
   totalUsd: number;
   totalRp: number;
+  /** Total floating loss (cent, nilai positif) dari entry-entry loss. */
+  totalLossCent: number;
+  /** Total profit (cent) dari entry-entry profit. */
+  totalProfitCent: number;
+  /** Floating loss maksimum (cent) sebelum entry profit mulai menutup. */
+  peakLossCent: number;
+  lossEntries: number;
+  profitEntries: number;
   worstLot: number;
   totalLot: number;
   totalDistancePips: number;
-  /** Persen floating loss terhadap modal. */
+  /** Persen floating loss maksimum terhadap modal. */
   riskPct: number;
   /** Sisa equity setelah floating loss maksimum. */
   equityLeftUsd: number;
-  /** Modal minimum yang disarankan (total loss + buffer). */
+  /** Modal minimum yang disarankan (floating loss maksimum + buffer). */
   requiredUsd: number;
   requiredRp: number;
   /** Entry pertama yang membuat modal habis (null kalau bertahan semua). */
@@ -64,16 +78,27 @@ export function lossCentAt(lot: number, distancePips: number, pipValueCent: numb
 export function computeKetahanan(input: CalcInput): CalcResult {
   const pipValueCent = input.pipValueCent > 0 ? input.pipValueCent : 100;
   const modalCent = Math.max(0, input.modalUsd) * 100;
+  const lossEntries = Math.max(0, Math.min(input.entries, Math.round(input.lossEntries)));
   const rows: EntryRow[] = [];
-  let cum = 0;
+  let cum = 0; // akumulasi loss (positif)
+  let profit = 0; // akumulasi profit (positif)
   let cumLot = 0;
   let blownAtEntry: number | null = null;
 
   for (let i = 1; i <= input.entries; i++) {
     const lot = lotAt(input.lot, input.multiplier, i);
-    const distancePips = distanceAt(input.point, input.entries, i);
-    const lossCent = lossCentAt(lot, distancePips, pipValueCent);
-    cum += lossCent;
+    const isProfit = i > lossEntries;
+    // Entry loss: floating sesuai jarak ke titik terjauh.
+    // Entry profit: harga berbalik dan kena TP 1 grid (point pips).
+    const distancePips = isProfit
+      ? input.point
+      : distanceAt(input.point, input.entries, i);
+    const plCent = isProfit
+      ? lossCentAt(lot, distancePips, pipValueCent)
+      : -lossCentAt(lot, distancePips, pipValueCent);
+    if (isProfit) profit += plCent;
+    else cum += -plCent;
+    const netCent = profit - cum;
     cumLot = Math.round((cumLot + lot) * 100) / 100;
     const blown = modalCent > 0 && cum > modalCent;
     if (blown && blownAtEntry === null) blownAtEntry = i;
@@ -81,29 +106,37 @@ export function computeKetahanan(input: CalcInput): CalcResult {
       index: i,
       lot,
       distancePips,
-      lossCent,
-      cumLossCent: cum,
+      plCent,
+      cumPlCent: netCent,
       cumLot,
-      equityLeftUsd: (modalCent - cum) / 100,
+      isProfit,
+      equityLeftUsd: (modalCent + netCent) / 100,
       blown,
     });
   }
 
-  const totalCent = cum;
-  const totalUsd = totalCent / 100;
-  const requiredUsd = totalUsd * (1 + Math.max(0, input.bufferPct) / 100);
+  const peakLossCent = cum; // loss menumpuk dulu sebelum profit masuk
+  const netCent = profit - cum;
+  const totalUsd = netCent / 100;
+  const peakUsd = peakLossCent / 100;
+  const requiredUsd = peakUsd * (1 + Math.max(0, input.bufferPct) / 100);
   const firstLot = lotAt(input.lot, input.multiplier, 1);
 
   return {
     rows,
-    totalCent,
+    totalCent: netCent,
     totalUsd,
     totalRp: totalUsd * input.kurs,
+    totalLossCent: cum,
+    totalProfitCent: profit,
+    peakLossCent,
+    lossEntries,
+    profitEntries: input.entries - lossEntries,
     worstLot: rows.length ? (rows.at(-1)?.lot ?? 0) : 0,
     totalLot: cumLot,
     totalDistancePips: input.entries * input.point,
-    riskPct: input.modalUsd > 0 ? (totalUsd / input.modalUsd) * 100 : 0,
-    equityLeftUsd: input.modalUsd - totalUsd,
+    riskPct: input.modalUsd > 0 ? (peakUsd / input.modalUsd) * 100 : 0,
+    equityLeftUsd: input.modalUsd - peakUsd,
     requiredUsd,
     requiredRp: requiredUsd * input.kurs,
     blownAtEntry,
@@ -139,6 +172,7 @@ export const DEFAULT_INPUT: CalcInput = {
   lot: 0.1,
   multiplier: 1,
   entries: 20,
+  lossEntries: 20,
   kurs: 17653,
   pipValueCent: 100,
   modalUsd: 3000,
