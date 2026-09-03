@@ -12,6 +12,8 @@ import { useDebounced } from "@/hooks/use-debounced";
 import { useSimulation } from "@/hooks/use-simulation";
 import {
   computeKetahanan,
+  simTotalSteps,
+  simulateFrame,
   DEFAULT_INPUT,
   type CalcInput,
   type Currency,
@@ -49,7 +51,9 @@ function Index() {
   const pending = debouncedInput !== input;
   const result = useMemo(() => computeKetahanan(debouncedInput), [debouncedInput]);
 
-  const sim = useSimulation(result.rows.length, result);
+  const totalSteps = useMemo(() => simTotalSteps(debouncedInput), [debouncedInput]);
+  const sim = useSimulation(totalSteps, debouncedInput);
+  const frame = useMemo(() => simulateFrame(debouncedInput, sim.step), [debouncedInput, sim.step]);
 
   const kurs = useKurs((rate) => setInput((prev) => ({ ...prev, kurs: rate })));
 
@@ -116,7 +120,9 @@ function Index() {
           }
         >
         <SimulationPanel
-          result={result}
+          frame={frame}
+          totalSteps={totalSteps}
+          entries={debouncedInput.entries}
           currency={currency}
           kurs={debouncedInput.kurs}
           modalUsd={debouncedInput.modalUsd}
@@ -129,14 +135,20 @@ function Index() {
         />
 
         <EntriesTable
-          rows={result.rows}
+          rows={sim.running ? frame.rows : result.rows}
           entries={debouncedInput.entries}
           lossEntries={input.lossEntries}
           onLossEntriesChange={(v) => update("lossEntries", v)}
           currency={currency}
           onCurrencyChange={setCurrency}
           kurs={debouncedInput.kurs}
-          visibleCount={sim.running ? sim.step : undefined}
+          simNote={
+            sim.running
+              ? frame.phase === "recover" || frame.phase === "done"
+                ? `Harga berbalik ${frame.retrace} grid — ${frame.opened} entry terbuka`
+                : `Simulasi berjalan… ${frame.opened} / ${debouncedInput.entries} entry masuk`
+              : undefined
+          }
         />
 
 
