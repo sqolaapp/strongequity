@@ -67,7 +67,7 @@ export function InputPanel({
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-4 gap-2 lg:grid-cols-7">
+      <div className="mt-3 grid grid-cols-3 gap-2 md:grid-cols-6">
         <NumberField
           label="JARAK (POINT)"
           hint="Jarak antar entry (pips)"
@@ -95,14 +95,6 @@ export function InputPanel({
             onChange("entries", entries);
             if (input.lossEntries > entries) onChange("lossEntries", entries);
           }}
-        />
-        <NumberField
-          label="Entry Loss"
-          hint="Sisanya profit saat harga berbalik"
-          value={input.lossEntries}
-          onChange={(v) =>
-            onChange("lossEntries", Math.max(0, Math.min(input.entries, Math.round(v))))
-          }
         />
         <NumberField
           label="Modal $"

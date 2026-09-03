@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { InputPanel } from "@/components/calculator/InputPanel";
 import { SummaryCards } from "@/components/calculator/SummaryCards";
 import { EntriesTable } from "@/components/calculator/EntriesTable";
+import { EntryLossControl } from "@/components/calculator/EntryLossControl";
 import { PresetModal } from "@/components/calculator/PresetModal";
 import { ThemeToggle } from "@/components/calculator/ThemeToggle";
 import { usePresets } from "@/hooks/use-presets";
@@ -98,6 +99,12 @@ function Index() {
         />
 
         <SummaryCards result={result} entries={input.entries} />
+
+        <EntryLossControl
+          value={input.lossEntries}
+          entries={input.entries}
+          onChange={(v) => update("lossEntries", v)}
+        />
 
         <EntriesTable rows={result.rows} />
 
