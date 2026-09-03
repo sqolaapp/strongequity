@@ -116,7 +116,7 @@ export function SummaryCards({ result, entries }: SummaryCardsProps) {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         <StatCard
           label={`Total Profit (${result.profitEntries} entry)`}
           value={`$ ${fmtUsd(result.totalProfitCent / 100)}`}
@@ -135,6 +135,17 @@ export function SummaryCards({ result, entries }: SummaryCardsProps) {
         <StatCard
           label="Tahan 1 entry"
           value={`${fmtPips(result.maxDistanceFirstEntryPips)} pips`}
+        />
+        <StatCard
+          label="Net Profit/Loss"
+          value={`$ ${fmtUsd(result.netProfitUsd)}`}
+          suffix={result.netProfitUsd >= 0 ? "+" : "-"}
+          tone={result.netProfitUsd >= 0 ? "primary" : "danger"}
+        />
+        <StatCard
+          label="Pertumbuhan %"
+          value={fmtPct(result.netProfitPct)}
+          tone={result.netProfitPct >= 0 ? "primary" : "danger"}
         />
       </div>
     </section>
