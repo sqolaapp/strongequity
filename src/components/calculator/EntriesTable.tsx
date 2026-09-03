@@ -24,11 +24,11 @@ export function EntriesTable({
 
   return (
     <section aria-label="Rincian per entry" className="brutal bg-card">
-      <header className="flex flex-wrap items-end justify-between gap-2 border-b-2 border-border px-3 py-2">
+      <header className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-border px-3 py-2">
         <h2 className="font-display text-xs font-bold uppercase tracking-widest text-foreground">
           Rincian per Entry
         </h2>
-        <div className="flex items-end gap-2">
+        <div className="flex items-center gap-2">
           <label className="flex flex-col gap-0.5">
             <span className="font-display text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
               Entry Loss
@@ -43,7 +43,7 @@ export function EntriesTable({
                   Math.max(0, Math.min(entries, Math.round(Number(e.target.value) || 0))),
                 )
               }
-              className="brutal w-16 bg-background px-1.5 py-1 text-right font-mono text-xs font-bold text-foreground outline-none"
+              className="brutal w-14 bg-background px-1.5 py-1 text-right font-mono text-[10px] font-bold text-foreground outline-none"
             />
           </label>
           <label className="flex flex-col gap-0.5">
@@ -53,7 +53,7 @@ export function EntriesTable({
             <select
               value={currency}
               onChange={(e) => onCurrencyChange(e.target.value as Currency)}
-              className="brutal bg-background px-1.5 py-1 font-mono text-xs font-bold text-foreground outline-none"
+              className="brutal min-w-0 w-auto max-w-[6.5rem] bg-background px-1.5 py-1 font-mono text-[10px] font-bold text-foreground outline-none"
             >
               {(Object.keys(CURRENCY_LABEL) as Currency[]).map((c) => (
                 <option key={c} value={c}>
