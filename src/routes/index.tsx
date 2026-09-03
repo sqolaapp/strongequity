@@ -38,6 +38,8 @@ function Index() {
 
   const result = useMemo(() => computeKetahanan(input), [input]);
 
+  const kurs = useKurs((rate) => setInput((prev) => ({ ...prev, kurs: rate })));
+
   const update = <K extends keyof CalcInput>(key: K, value: CalcInput[K]) =>
     setInput((prev) => ({ ...prev, [key]: value }));
 
