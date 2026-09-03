@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { InputPanel } from "@/components/calculator/InputPanel";
 import { SummaryCards } from "@/components/calculator/SummaryCards";
 import { EntriesTable } from "@/components/calculator/EntriesTable";
-import { PresetBar } from "@/components/calculator/PresetBar";
+import { PresetModal } from "@/components/calculator/PresetModal";
 import { ThemeToggle } from "@/components/calculator/ThemeToggle";
 import { usePresets } from "@/hooks/use-presets";
 import { computeKetahanan, DEFAULT_INPUT, type CalcInput } from "@/lib/ketahanan";
@@ -67,7 +67,15 @@ function Index() {
               Kalkulator Ketahanan Equity
             </h1>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <PresetModal
+              presets={presets}
+              onLoad={handleLoad}
+              onSave={handleSave}
+              onDelete={deletePreset}
+            />
+            <ThemeToggle />
+          </div>
         </header>
 
         {note ? (
@@ -77,13 +85,6 @@ function Index() {
         ) : null}
 
         <InputPanel input={input} onChange={update} onReset={() => setInput(DEFAULT_INPUT)} />
-
-        <PresetBar
-          presets={presets}
-          onLoad={handleLoad}
-          onSave={handleSave}
-          onDelete={deletePreset}
-        />
 
         <SummaryCards result={result} entries={input.entries} />
 
