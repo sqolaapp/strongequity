@@ -135,7 +135,7 @@ export function computeKetahanan(input: CalcInput): CalcResult {
       plCent,
       cumPlCent: netCent,
       cumLot,
-      isProfit,
+      status,
       equityLeftUsd: (modalCent + netCent) / 100,
       blown,
     });
@@ -157,7 +157,7 @@ export function computeKetahanan(input: CalcInput): CalcResult {
     totalProfitCent: profit,
     peakLossCent,
     lossEntries,
-    profitEntries: input.entries - lossEntries,
+    profitEntries,
     worstLot: rows.length ? (rows.at(-1)?.lot ?? 0) : 0,
     totalLot: cumLot,
     totalDistancePips: input.entries * input.point,
