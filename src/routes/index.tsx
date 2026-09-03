@@ -3,12 +3,16 @@ import { useMemo, useState } from "react";
 import { InputPanel } from "@/components/calculator/InputPanel";
 import { SummaryCards } from "@/components/calculator/SummaryCards";
 import { EntriesTable } from "@/components/calculator/EntriesTable";
-import { EntryLossControl } from "@/components/calculator/EntryLossControl";
 import { PresetModal } from "@/components/calculator/PresetModal";
 import { ThemeToggle } from "@/components/calculator/ThemeToggle";
 import { usePresets } from "@/hooks/use-presets";
 import { useKurs } from "@/hooks/use-kurs";
-import { computeKetahanan, DEFAULT_INPUT, type CalcInput } from "@/lib/ketahanan";
+import {
+  computeKetahanan,
+  DEFAULT_INPUT,
+  type CalcInput,
+  type Currency,
+} from "@/lib/ketahanan";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -35,6 +39,7 @@ export const Route = createFileRoute("/")({
 function Index() {
   const [input, setInput] = useState<CalcInput>(DEFAULT_INPUT);
   const [note, setNote] = useState<string | null>(null);
+  const [currency, setCurrency] = useState<Currency>("cent");
   const { presets, savePreset, deletePreset } = usePresets();
 
   const result = useMemo(() => computeKetahanan(input), [input]);
@@ -100,13 +105,15 @@ function Index() {
 
         <SummaryCards result={result} entries={input.entries} />
 
-        <EntryLossControl
-          value={input.lossEntries}
+        <EntriesTable
+          rows={result.rows}
           entries={input.entries}
-          onChange={(v) => update("lossEntries", v)}
+          lossEntries={input.lossEntries}
+          onLossEntriesChange={(v) => update("lossEntries", v)}
+          currency={currency}
+          onCurrencyChange={setCurrency}
+          kurs={input.kurs}
         />
-
-        <EntriesTable rows={result.rows} />
 
         <footer className="pb-4 text-[10px] leading-relaxed text-muted-foreground">
           Rumus: lot entry ke-i = lot × multiplier^(i−1); floating loss entry ke-i = lot × (entries

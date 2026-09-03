@@ -114,12 +114,16 @@ export function computeKetahanan(input: CalcInput): CalcResult {
     // Entry profit: makin jauh dari titik balik (BEP) makin besar profitnya (1, 2, 3, ... grid).
     const profitGrid =
       input.direction === "buy" ? i - lossEntries - 1 : profitEntries + 1 - i;
+    // Jarak floating entry loss diukur dari titik terjauh, yaitu entry loss TERAKHIR
+    // (bukan entry terakhir), sehingga berubah mengikuti jumlah entry loss.
+    const lossGrid =
+      input.direction === "buy" ? lossEntries + 1 - i : i - profitEntries - 1;
     const distancePips =
       status === "profit"
         ? profitGrid * input.point
         : status === "bep"
           ? 0
-          : distanceAt(input.point, input.entries, i);
+          : lossGrid * input.point;
     const plCent =
       status === "profit"
         ? lossCentAt(lot, distancePips, pipValueCent)
@@ -213,3 +217,24 @@ export const DEFAULT_INPUT: CalcInput = {
   modalUsd: 3000,
   bufferPct: 20,
 };
+
+export type Currency = "cent" | "usd" | "idr";
+
+export const CURRENCY_LABEL: Record<Currency, string> = {
+  cent: "Cent (¢)",
+  usd: "USD ($)",
+  idr: "Rupiah (Rp)",
+};
+
+/** Format nilai cent ke mata uang pilihan, tanpa tanda. */
+export function fmtMoney(cent: number, currency: Currency, kurs: number): string {
+  const abs = Math.abs(cent);
+  if (currency === "cent") return `${fmtCent(abs)}¢`;
+  if (currency === "usd") return `$${fmtUsd(abs / 100)}`;
+  return `Rp${fmtRp((abs / 100) * kurs)}`;
+}
+
+/** Format nilai USD ke mata uang pilihan, dengan tanda minus bila negatif. */
+export function fmtMoneySigned(cent: number, currency: Currency, kurs: number): string {
+  return `${cent < 0 ? "-" : ""}${fmtMoney(cent, currency, kurs)}`;
+}
