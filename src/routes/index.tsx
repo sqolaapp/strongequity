@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { InputPanel } from "@/components/calculator/InputPanel";
 import { SummaryCards } from "@/components/calculator/SummaryCards";
 import { EntriesTable } from "@/components/calculator/EntriesTable";
+import { SimulationPanel } from "@/components/calculator/SimulationPanel";
 import { PresetModal } from "@/components/calculator/PresetModal";
 import { ThemeToggle } from "@/components/calculator/ThemeToggle";
 import { usePresets } from "@/hooks/use-presets";

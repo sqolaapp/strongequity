@@ -35,7 +35,7 @@ export function SimulationPanel({ result, currency, kurs, modalUsd }: Simulation
     return () => window.clearTimeout(t);
   }, [playing, step, rows.length]);
 
-  const current = step > 0 ? rows[step - 1] : null;
+  const current = step > 0 ? (rows[step - 1] ?? null) : null;
   const netCent = current ? current.cumPlCent : 0;
   const equityUsd = current ? current.equityLeftUsd : modalUsd;
   const openLot = rows.slice(0, step).reduce((a, r) => a + r.lot, 0);
