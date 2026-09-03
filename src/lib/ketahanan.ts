@@ -217,3 +217,24 @@ export const DEFAULT_INPUT: CalcInput = {
   modalUsd: 3000,
   bufferPct: 20,
 };
+
+export type Currency = "cent" | "usd" | "idr";
+
+export const CURRENCY_LABEL: Record<Currency, string> = {
+  cent: "Cent (¢)",
+  usd: "USD ($)",
+  idr: "Rupiah (Rp)",
+};
+
+/** Format nilai cent ke mata uang pilihan, tanpa tanda. */
+export function fmtMoney(cent: number, currency: Currency, kurs: number): string {
+  const abs = Math.abs(cent);
+  if (currency === "cent") return `${fmtCent(abs)}¢`;
+  if (currency === "usd") return `$${fmtUsd(abs / 100)}`;
+  return `Rp${fmtRp((abs / 100) * kurs)}`;
+}
+
+/** Format nilai USD ke mata uang pilihan, dengan tanda minus bila negatif. */
+export function fmtMoneySigned(cent: number, currency: Currency, kurs: number): string {
+  return `${cent < 0 ? "-" : ""}${fmtMoney(cent, currency, kurs)}`;
+}
