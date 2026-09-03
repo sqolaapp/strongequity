@@ -230,3 +230,83 @@ export function fmtMoney(cent: number, currency: Currency, kurs: number): string
 export function fmtMoneySigned(cent: number, currency: Currency, kurs: number): string {
   return `${cent < 0 ? "-" : ""}${fmtMoney(cent, currency, kurs)}`;
 }
+
+export interface SimFrame {
+  rows: EntryRow[];
+  /** Berapa entry sudah terbuka. */
+  opened: number;
+  /** Berapa grid harga sudah berbalik (retrace) dari titik terjauh. */
+  retrace: number;
+  phase: "idle" | "loss" | "bottom" | "recover" | "done";
+  netCent: number;
+  peakLossCent: number;
+  equityLeftUsd: number;
+  blown: boolean;
+  totalLot: number;
+}
+
+/**
+ * Total langkah simulasi: fase 1 buka SEMUA entry sampai titik terjauh (full loss),
+ * lalu fase 2 harga berbalik grid demi grid sampai entry profit terpenuhi.
+ */
+export function simTotalSteps(input: CalcInput): number {
+  const n = Math.max(0, Math.round(input.entries));
+  const loss = Math.max(0, Math.min(n, Math.round(input.lossEntries)));
+  return n + Math.max(0, n - loss);
+}
+
+/** Snapshot simulasi pada langkah tertentu (0 = belum mulai). */
+export function simulateFrame(input: CalcInput, step: number): SimFrame {
+  const n = Math.max(0, Math.round(input.entries));
+  const loss = Math.max(0, Math.min(n, Math.round(input.lossEntries)));
+  const pipValueCent = input.pipValueCent > 0 ? input.pipValueCent : 100;
+  const modalCent = Math.max(0, input.modalUsd) * 100;
+  const total = n + Math.max(0, n - loss);
+  const s = Math.max(0, Math.min(total, Math.round(step)));
+  const opened = Math.min(n, s);
+  const retrace = Math.max(0, s - n);
+
+  const rows: EntryRow[] = [];
+  let net = 0;
+  let peakLoss = 0;
+  let cumLot = 0;
+  let blown = false;
+  for (let i = 1; i <= opened; i++) {
+    const lot = lotAt(input.lot, input.multiplier, i);
+    const grids = opened + 1 - i - retrace;
+    const distancePips = Math.abs(grids) * input.point;
+    const plCent = -grids * lot * distancePips * pipValueCent / Math.max(1, Math.abs(grids) || 1);
+    const pl = grids === 0 ? 0 : -Math.sign(grids) * lot * distancePips * pipValueCent;
+    void plCent;
+    net += pl;
+    cumLot = Math.round((cumLot + lot) * 100) / 100;
+    if (-net > peakLoss) peakLoss = -net;
+    if (modalCent > 0 && -net > modalCent) blown = true;
+    rows.push({
+      index: i,
+      lot,
+      distancePips,
+      plCent: pl,
+      cumPlCent: net,
+      cumLot,
+      status: grids > 0 ? "loss" : grids === 0 ? "bep" : "profit",
+      equityLeftUsd: (modalCent + net) / 100,
+      blown: modalCent > 0 && -net > modalCent,
+    });
+  }
+
+  const phase: SimFrame["phase"] =
+    s === 0 ? "idle" : s < n ? "loss" : s === n ? "bottom" : s < total ? "recover" : "done";
+
+  return {
+    rows,
+    opened,
+    retrace,
+    phase,
+    netCent: net,
+    peakLossCent: peakLoss,
+    equityLeftUsd: (modalCent + net) / 100,
+    blown,
+    totalLot: cumLot,
+  };
+}
