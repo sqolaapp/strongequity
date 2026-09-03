@@ -3,19 +3,11 @@ import type { CalcInput } from "@/lib/ketahanan";
 
 interface InputPanelProps {
   input: CalcInput;
-  modalUsd: number;
   onChange: <K extends keyof CalcInput>(key: K, value: CalcInput[K]) => void;
-  onModalChange: (v: number) => void;
   onReset: () => void;
 }
 
-export function InputPanel({
-  input,
-  modalUsd,
-  onChange,
-  onModalChange,
-  onReset,
-}: InputPanelProps) {
+export function InputPanel({ input, onChange, onReset }: InputPanelProps) {
   return (
     <section aria-label="Input kalkulator" className="brutal bg-card p-3">
       <div className="flex items-center justify-between gap-2">
@@ -31,10 +23,10 @@ export function InputPanel({
         </button>
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+      <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         <NumberField
           label="Point"
-          hint="Jarak antar entry"
+          hint="Jarak antar entry (pips)"
           value={input.point}
           onChange={(v) => onChange("point", v)}
         />
@@ -57,16 +49,28 @@ export function InputPanel({
           onChange={(v) => onChange("entries", Math.max(1, Math.min(200, Math.round(v))))}
         />
         <NumberField
+          label="Modal $"
+          hint="Equity Anda"
+          value={input.modalUsd}
+          onChange={(v) => onChange("modalUsd", v)}
+        />
+        <NumberField
+          label="¢ / pip / lot"
+          hint="Default 100¢ = $1"
+          value={input.pipValueCent}
+          onChange={(v) => onChange("pipValueCent", v)}
+        />
+        <NumberField
+          label="Buffer %"
+          hint="Cadangan aman"
+          value={input.bufferPct}
+          onChange={(v) => onChange("bufferPct", v)}
+        />
+        <NumberField
           label="Kurs"
           hint="USD → IDR"
           value={input.kurs}
           onChange={(v) => onChange("kurs", v)}
-        />
-        <NumberField
-          label="Modal $"
-          hint="Equity Anda"
-          value={modalUsd}
-          onChange={onModalChange}
         />
       </div>
     </section>
