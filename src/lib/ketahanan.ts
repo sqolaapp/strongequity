@@ -60,6 +60,10 @@ export interface CalcResult {
   survivedEntries: number;
   /** Jarak pips maksimum yang bisa ditahan modal saat ini pada entry pertama saja. */
   maxDistanceFirstEntryPips: number;
+  /** P/L bersih setelah profit dikurangi loss (USD). */
+  netProfitUsd: number;
+  /** Persen pertumbuhan net profit terhadap modal. */
+  netProfitPct: number;
 }
 
 /** Lot entry ke-i, dibulatkan 2 desimal seperti di jurnal. */
