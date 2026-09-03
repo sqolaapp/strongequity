@@ -71,7 +71,7 @@ export function SummaryCards({
         </div>
 
         <Row
-          label={`Modal pas untuk menahan ${lossEntries} entry loss`}
+          label={`Modal pas menahan floating maksimum (semua ${entries} entry terbuka)`}
           value={money(result.peakLossCent)}
           tone={survived ? "primary" : "plain"}
         />

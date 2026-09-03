@@ -1,5 +1,11 @@
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Currency, EntryRow } from "@/lib/ketahanan";
 import { CURRENCY_LABEL, fmtLot, fmtMoney, fmtMoneySigned } from "@/lib/ketahanan";
+
+const selectTriggerClass =
+  "brutal h-auto rounded-none border-2 bg-background px-1.5 py-1 font-mono text-[10px] font-bold text-foreground shadow-none focus:ring-0 [&_svg]:size-3 [&_svg]:opacity-100";
+const selectContentClass = "rounded-none border-2 border-border font-mono";
+const selectItemClass = "rounded-none py-1 pl-2 text-[10px] font-bold focus:bg-accent focus:text-accent-foreground";
 
 interface EntriesTableProps {
   rows: EntryRow[];
@@ -24,6 +30,7 @@ export function EntriesTable({
 }: EntriesTableProps) {
   const shownRows = rows;
   const unit = currency === "cent" ? "¢" : currency === "usd" ? "$" : "Rp";
+  const lossOptions = Array.from({ length: Math.max(0, entries) + 1 }, (_, i) => i);
 
   return (
     <section aria-label="Rincian per entry" className="brutal bg-card">
@@ -36,34 +43,35 @@ export function EntriesTable({
             <span className="font-display text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
               Entry Loss
             </span>
-            <input
-              type="number"
-              min={0}
-              max={entries}
-              value={lossEntries}
-              onChange={(e) =>
-                onLossEntriesChange(
-                  Math.max(0, Math.min(entries, Math.round(Number(e.target.value) || 0))),
-                )
-              }
-              className="brutal w-14 bg-background px-1.5 py-1 text-right font-mono text-[10px] font-bold text-foreground outline-none"
-            />
+            <Select value={String(lossEntries)} onValueChange={(v) => onLossEntriesChange(Number(v))}>
+              <SelectTrigger className={`${selectTriggerClass} w-16`}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className={selectContentClass}>
+                {lossOptions.map((n) => (
+                  <SelectItem key={n} value={String(n)} className={selectItemClass}>
+                    {n}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </label>
           <label className="flex flex-col gap-0.5">
             <span className="font-display text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
               Mata uang
             </span>
-            <select
-              value={currency}
-              onChange={(e) => onCurrencyChange(e.target.value as Currency)}
-              className="brutal min-w-0 w-auto max-w-[6.5rem] bg-background px-1.5 py-1 font-mono text-[10px] font-bold text-foreground outline-none"
-            >
-              {(Object.keys(CURRENCY_LABEL) as Currency[]).map((c) => (
-                <option key={c} value={c}>
-                  {CURRENCY_LABEL[c]}
-                </option>
-              ))}
-            </select>
+            <Select value={currency} onValueChange={(v) => onCurrencyChange(v as Currency)}>
+              <SelectTrigger className={`${selectTriggerClass} w-auto min-w-0 max-w-[6.5rem]`}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className={selectContentClass}>
+                {(Object.keys(CURRENCY_LABEL) as Currency[]).map((c) => (
+                  <SelectItem key={c} value={c} className={selectItemClass}>
+                    {CURRENCY_LABEL[c]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </label>
         </div>
       </header>

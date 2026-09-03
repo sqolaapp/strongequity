@@ -91,31 +91,25 @@ export function computeKetahanan(input: CalcInput): CalcResult {
   let profit = 0; // akumulasi profit (positif)
   let cumLot = 0;
   let blownAtEntry: number | null = null;
+  // Floating loss saat fase buka: SEMUA entry yang sudah terbuka ikut merugi.
+  // Tiap grid tambahan, seluruh lot terbuka rugi 1 grid → naik point × pipValue × totalLot.
+  let floatingCent = 0;
+  let peakFloatingCent = 0;
 
   // Selalu ada TEPAT 1 entry BEP (nol) di titik balik, di antara loss dan profit.
   const profitEntries = Math.max(0, input.entries - lossEntries - 1);
   for (let i = 1; i <= input.entries; i++) {
     const lot = lotAt(input.lot, input.multiplier, i);
-    // BUY: loss di atas (1..L), BEP di L+1, profit dari bawah ke atas.
-    // SELL: dibalik — profit di atas (1..P), BEP di P+1, loss di bawah.
+    // BUY dan SELL simetris: yang berbeda hanya arah harga (turun vs naik).
+    // Entry ke-1 selalu paling jauh dari titik balik, jadi paling akhir pulih;
+    // entry terakhir (dibuka di titik terjauh) yang lebih dulu jadi profit.
     const status: EntryRow["status"] =
-      input.direction === "buy"
-        ? i <= lossEntries
-          ? "loss"
-          : i === lossEntries + 1
-            ? "bep"
-            : "profit"
-        : i <= profitEntries
-          ? "profit"
-          : i === profitEntries + 1
-            ? "bep"
-            : "loss";
-    // Entry loss: floating sesuai jarak ke titik terjauh.
+      i <= lossEntries ? "loss" : i === lossEntries + 1 ? "bep" : "profit";
     // Entry profit: makin jauh dari titik balik (BEP) makin besar profitnya (1, 2, 3, ... grid).
-    const profitGrid = input.direction === "buy" ? i - lossEntries - 1 : profitEntries + 1 - i;
-    // Jarak floating entry loss diukur dari titik terjauh, yaitu entry loss TERAKHIR
-    // (bukan entry terakhir), sehingga berubah mengikuti jumlah entry loss.
-    const lossGrid = input.direction === "buy" ? lossEntries + 1 - i : i - profitEntries - 1;
+    const profitGrid = i - lossEntries - 1;
+    // Jarak floating entry loss diukur dari entry loss TERAKHIR (titik balik),
+    // sehingga berubah mengikuti jumlah entry loss.
+    const lossGrid = lossEntries + 1 - i;
     const distancePips = status === "profit" ? profitGrid * input.point : status === "bep" ? 0 : lossGrid * input.point;
     const plCent =
       status === "profit"
@@ -127,7 +121,9 @@ export function computeKetahanan(input: CalcInput): CalcResult {
     else if (status === "loss") cum += -plCent;
     const netCent = profit - cum;
     cumLot = Math.round((cumLot + lot) * 100) / 100;
-    const blown = modalCent > 0 && cum > modalCent;
+    floatingCent += input.point * pipValueCent * cumLot;
+    if (floatingCent > peakFloatingCent) peakFloatingCent = floatingCent;
+    const blown = modalCent > 0 && floatingCent > modalCent;
     if (blown && blownAtEntry === null) blownAtEntry = i;
     rows.push({
       index: i,
@@ -142,7 +138,9 @@ export function computeKetahanan(input: CalcInput): CalcResult {
     });
   }
 
-  const peakLossCent = cum; // loss menumpuk dulu sebelum profit masuk
+  // Modal harus menahan titik TERBURUK (semua entry terbuka di titik terjauh),
+  // bukan cuma entry yang berakhir loss setelah harga berbalik.
+  const peakLossCent = peakFloatingCent;
   const netCent = profit - cum;
   const totalUsd = netCent / 100;
   const peakUsd = peakLossCent / 100;
@@ -255,16 +253,63 @@ export function simTotalSteps(input: CalcInput): number {
   return n + Math.max(0, n - loss);
 }
 
-/** Snapshot simulasi pada langkah tertentu (0 = belum mulai). */
-export function simulateFrame(input: CalcInput, step: number): SimFrame {
+/**
+ * Posisi akhir entry ke-i dalam satuan grid saat harga sudah berbalik penuh.
+ * Positif = masih loss, 0 = BEP, negatif = profit. Mengikuti pembagian
+ * loss/profit yang sama dengan computeKetahanan agar simulasi dan tabel sinkron.
+ */
+function finalGridAt(i: number, lossEntries: number): number {
+  return lossEntries + 1 - i;
+}
+
+/**
+ * Posisi entry ke-i (satuan grid) pada suatu langkah simulasi.
+ * Fase buka: semua entry yang sudah terbuka pasti floating loss (harga masih
+ * menjauh). Fase balik: bergerak dari posisi itu menuju posisi akhir sesuai arah.
+ */
+function simGridAt(
+  i: number,
+  opened: number,
+  retrace: number,
+  retraceSteps: number,
+  lossEntries: number,
+): number {
+  const openGrid = opened + 1 - i;
+  if (retrace <= 0 || retraceSteps <= 0) return openGrid;
+  const target = finalGridAt(i, lossEntries);
+  return openGrid + (retrace / retraceSteps) * (target - openGrid);
+}
+
+/** Bagian-bagian langkah simulasi yang dipakai bersama. */
+function simStepParts(input: CalcInput, step: number) {
   const n = Math.max(0, Math.round(input.entries));
   const loss = Math.max(0, Math.min(n, Math.round(input.lossEntries)));
+  const retraceSteps = Math.max(0, n - loss);
+  const total = n + retraceSteps;
+  const s = Math.max(0, Math.min(total, Math.round(step)));
+  return { n, loss, retraceSteps, total, s, opened: Math.min(n, s), retrace: Math.max(0, s - n) };
+}
+
+/** P/L bersih (cent) pada satu langkah simulasi, tanpa membangun daftar baris. */
+export function simNetCentAt(input: CalcInput, step: number): number {
+  const { n, loss, retraceSteps, opened, retrace } = simStepParts(input, step);
+  const pipValueCent = input.pipValueCent > 0 ? input.pipValueCent : 100;
+  let net = 0;
+  for (let i = 1; i <= opened; i++) {
+    const lot = lotAt(input.lot, input.multiplier, i);
+    const grids = simGridAt(i, opened, retrace, retraceSteps, loss);
+    if (grids !== 0) {
+      net += -Math.sign(grids) * lot * Math.abs(grids) * input.point * pipValueCent;
+    }
+  }
+  return net;
+}
+
+/** Snapshot simulasi pada langkah tertentu (0 = belum mulai). */
+export function simulateFrame(input: CalcInput, step: number): SimFrame {
+  const { n, loss, retraceSteps, total, s, opened, retrace } = simStepParts(input, step);
   const pipValueCent = input.pipValueCent > 0 ? input.pipValueCent : 100;
   const modalCent = Math.max(0, input.modalUsd) * 100;
-  const total = n + Math.max(0, n - loss);
-  const s = Math.max(0, Math.min(total, Math.round(step)));
-  const opened = Math.min(n, s);
-  const retrace = Math.max(0, s - n);
 
   const rows: EntryRow[] = [];
   let net = 0;
@@ -273,7 +318,7 @@ export function simulateFrame(input: CalcInput, step: number): SimFrame {
   let blown = false;
   for (let i = 1; i <= opened; i++) {
     const lot = lotAt(input.lot, input.multiplier, i);
-    const grids = opened + 1 - i - retrace;
+    const grids = simGridAt(i, opened, retrace, retraceSteps, loss);
     const distancePips = Math.abs(grids) * input.point;
     const pl = grids === 0 ? 0 : -Math.sign(grids) * lot * distancePips * pipValueCent;
     net += pl;

@@ -1,40 +1,38 @@
 import { Pause, Play, RotateCcw } from "lucide-react";
-import type { Currency, SimFrame } from "@/lib/ketahanan";
-import { fmtLot, fmtMoney, fmtMoneySigned, fmtPct } from "@/lib/ketahanan";
+import { SimulationChart } from "./SimulationChart";
+import type { CalcInput, Currency, SimFrame } from "@/lib/ketahanan";
+import { fmtLot, fmtMoneySigned } from "@/lib/ketahanan";
 
 interface SimulationPanelProps {
+  input: CalcInput;
   frame: SimFrame;
   totalSteps: number;
-  entries: number;
   currency: Currency;
-  kurs: number;
-  modalUsd: number;
   step: number;
   playing: boolean;
-  speedMs: number;
-  onSpeedChange: (ms: number) => void;
+  direction: CalcInput["direction"];
+  onDirectionChange: (direction: CalcInput["direction"]) => void;
   onToggle: () => void;
   onReset: () => void;
 }
 
 export function SimulationPanel({
+  input,
   frame,
   totalSteps,
-  entries,
   currency,
-  kurs,
-  modalUsd,
   step,
   playing,
-  speedMs,
-  onSpeedChange,
+  direction,
+  onDirectionChange,
   onToggle,
   onReset,
 }: SimulationPanelProps) {
+  const kurs = input.kurs;
+  const entries = input.entries;
   const netCent = frame.netCent;
   const equityUsd = frame.equityLeftUsd;
   const openLot = frame.totalLot;
-  const drawdownPct = modalUsd > 0 ? Math.max(0, (-netCent / 100 / modalUsd) * 100) : 0;
   const blown = frame.blown;
   const phase =
     frame.phase === "idle"
@@ -48,6 +46,19 @@ export function SimulationPanel({
             : frame.phase === "recover"
               ? "HARGA BERBALIK"
               : "SELESAI";
+  // Versi pendek dipakai di layar sempit supaya header tetap satu baris.
+  const phaseShort =
+    frame.phase === "idle"
+      ? "SIAP"
+      : blown
+        ? "MC"
+        : frame.phase === "loss"
+          ? "LOSS"
+          : frame.phase === "bottom"
+            ? "TERJAUH"
+            : frame.phase === "recover"
+              ? "BALIK"
+              : "SELESAI";
   const phaseClass = blown
     ? "bg-destructive text-destructive-foreground"
     : frame.phase === "recover" || frame.phase === "done"
@@ -59,46 +70,59 @@ export function SimulationPanel({
   return (
     <section aria-label="Simulasi entry" className="brutal bg-card">
       <header className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-border px-3 py-2">
-        <h2 className="font-display text-xs font-bold uppercase tracking-widest text-foreground">
-          Simulasi Entry
-        </h2>
-        <div className="flex items-center gap-2">
-          <label className="flex items-center gap-1">
-            <span className="font-display text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-              Jeda (ms)
-            </span>
-            <input
-              type="number"
-              min={50}
-              step={50}
-              value={speedMs}
-              onChange={(e) => onSpeedChange(Math.max(50, Math.round(Number(e.target.value) || 0)))}
-              className="brutal w-16 bg-background px-1.5 py-1 text-right font-mono text-[10px] font-bold text-foreground outline-none"
-            />
-          </label>
+        <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
+          <h2 className="font-display text-[11px] font-bold uppercase tracking-wider text-foreground sm:text-xs sm:tracking-widest">
+            <span className="sm:hidden">Simulasi</span>
+            <span className="hidden sm:inline">Simulasi Entry</span>
+          </h2>
           <span
             key={phase}
-            className={`brutal anim-value px-2 py-0.5 font-display text-[9px] font-bold tracking-widest ${phaseClass}`}
+            title={phase}
+            className={`brutal anim-value whitespace-nowrap px-1.5 py-0.5 font-display text-[9px] font-bold tracking-widest sm:px-2 ${phaseClass}`}
           >
-            {phase}
+            <span className="sm:hidden">{phaseShort}</span>
+            <span className="hidden sm:inline">{phase}</span>
           </span>
+        </div>
 
+        <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
+          <div className="brutal flex shrink-0 bg-background">
+            {(["buy", "sell"] as const).map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => onDirectionChange(d)}
+                aria-pressed={direction === d}
+                title={d === "buy" ? "Buy: harga turun dulu" : "Sell: harga naik dulu"}
+                className={`px-2 py-1.5 font-display text-[9px] font-bold uppercase tracking-widest transition-colors sm:px-2.5 sm:text-[10px] ${
+                  d === "sell" ? "border-l-2 border-border" : ""
+                } ${
+                  direction === d
+                    ? d === "buy"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-destructive text-destructive-foreground"
+                    : "text-muted-foreground hover:bg-secondary"
+                }`}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
           <button
             type="button"
             onClick={onToggle}
             aria-label={playing ? "Jeda simulasi" : "Mulai simulasi"}
             title={playing ? "Jeda" : "Mulai simulasi"}
-            className={`brutal-press bg-primary p-1.5 text-primary-foreground ${playing ? "anim-live" : ""}`}
+            className={`brutal-press shrink-0 bg-primary p-1.5 text-primary-foreground ${playing ? "anim-live" : ""}`}
           >
             {playing ? <Pause className="size-4" strokeWidth={2.5} /> : <Play className="size-4" strokeWidth={2.5} />}
-
           </button>
           <button
             type="button"
             onClick={onReset}
             aria-label="Reset simulasi"
             title="Reset simulasi"
-            className="brutal-press bg-secondary p-1.5 text-secondary-foreground"
+            className="brutal-press shrink-0 bg-secondary p-1.5 text-secondary-foreground"
           >
             <RotateCcw className="size-4" strokeWidth={2.5} />
           </button>
@@ -127,27 +151,15 @@ export function SimulationPanel({
         />
       </div>
 
-      <div className="px-3 pb-3">
-        <div className="brutal h-2.5 w-full overflow-hidden bg-muted p-0">
-          <div
-            className={`h-full transition-[width,background-color] duration-500 ease-out ${playing ? "bar-live" : ""} ${blown ? "bg-destructive" : netCent >= 0 ? "bg-primary" : "bg-accent"}`}
-            style={{ width: `${Math.min(100, netCent >= 0 ? (step / Math.max(1, totalSteps)) * 100 : drawdownPct)}%` }}
-          />
-        </div>
-        <p className="mt-1.5 min-h-[2.4em] text-[10px] leading-snug text-muted-foreground soft-swap">
-          {frame.phase === "idle"
-            ? `Tekan play: semua ${entries} entry dibuka dulu sampai titik terjauh (full floating loss), baru harga berbalik menutup loss jadi profit.`
-            : blown
-              ? `Modal habis di entry #${frame.opened} — drawdown ${fmtPct(drawdownPct)} dari modal.`
-              : frame.phase === "loss"
-                ? `Entry #${frame.opened} masuk, floating loss ${fmtMoney(netCent, currency, kurs)} (${fmtPct(drawdownPct)} dari modal). Harga masih turun.`
-                : frame.phase === "bottom"
-                  ? `Semua ${entries} entry terbuka di titik terjauh. Floating loss maksimum ${fmtMoney(netCent, currency, kurs)} — ${fmtPct(drawdownPct)} dari modal.`
-                  : frame.phase === "recover"
-                    ? `Harga berbalik ${frame.retrace} grid — floating sekarang ${fmtMoneySigned(netCent, currency, kurs)}, total lot ${fmtLot(openLot)}.`
-                    : `Selesai: harga berbalik ${frame.retrace} grid, hasil akhir ${fmtMoneySigned(netCent, currency, kurs)}.`}
-        </p>
-      </div>
+      <SimulationChart
+        input={input}
+        frame={frame}
+        totalSteps={totalSteps}
+        step={step}
+        playing={playing}
+        currency={currency}
+        kurs={kurs}
+      />
     </section>
   );
 }
@@ -173,4 +185,3 @@ function Cell({
     </div>
   );
 }
-

@@ -45,10 +45,9 @@ function Index() {
   const [input, setInput] = useState<CalcInput>(DEFAULT_INPUT);
   const [note, setNote] = useState<string | null>(null);
   const [currency, setCurrency] = useState<Currency>("cent");
-  const { presets, savePreset, deletePreset } = usePresets();
+  const { presets, savePreset, deletePreset, renamePreset, updatePreset } = usePresets();
 
   const debouncedInput = useDebounced(input, 2000);
-  const pending = debouncedInput !== input;
   const result = useMemo(() => computeKetahanan(debouncedInput), [debouncedInput]);
 
   const totalSteps = useMemo(() => simTotalSteps(debouncedInput), [debouncedInput]);
@@ -75,6 +74,11 @@ function Index() {
     flash("Preset dimuat.");
   };
 
+  const handleUpdate = (id: string) => {
+    updatePreset(id, input);
+    flash("Preset diperbarui dengan nilai input saat ini.");
+  };
+
   return (
     <main className="min-h-screen bg-background px-3 py-5 sm:px-5">
       <div className="mx-auto flex max-w-3xl flex-col gap-3">
@@ -93,6 +97,8 @@ function Index() {
               onLoad={handleLoad}
               onSave={handleSave}
               onDelete={deletePreset}
+              onRename={renamePreset}
+              onUpdate={handleUpdate}
             />
             <ThemeToggle />
           </div>
@@ -116,23 +122,17 @@ function Index() {
           />
         </div>
 
-        <div
-          className={`soft-swap flex flex-col gap-3 ${
-            pending ? "scale-[0.995] opacity-45 blur-[1px]" : "scale-100 opacity-100 blur-0"
-          }`}
-        >
+        <div className="flex flex-col gap-3">
           <div className="anim-section" style={{ animationDelay: "140ms" }}>
             <SimulationPanel
+              input={debouncedInput}
               frame={frame}
               totalSteps={totalSteps}
-              entries={debouncedInput.entries}
               currency={currency}
-              kurs={debouncedInput.kurs}
-              modalUsd={debouncedInput.modalUsd}
               step={sim.step}
               playing={sim.playing}
-              speedMs={sim.speedMs}
-              onSpeedChange={sim.setSpeedMs}
+              direction={input.direction}
+              onDirectionChange={(d) => update("direction", d)}
               onToggle={sim.toggle}
               onReset={sim.reset}
             />
@@ -141,7 +141,7 @@ function Index() {
           <div className="anim-section" style={{ animationDelay: "220ms" }}>
             <EntriesTable
               rows={sim.running ? frame.rows : result.rows}
-              entries={debouncedInput.entries}
+              entries={input.entries}
               lossEntries={input.lossEntries}
               onLossEntriesChange={(v) => update("lossEntries", v)}
               currency={currency}
