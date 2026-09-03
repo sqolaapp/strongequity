@@ -99,26 +99,29 @@ function Index() {
         </header>
 
         {note ? (
-          <p className="brutal bg-primary px-2.5 py-1.5 font-display text-[10px] font-bold uppercase tracking-widest text-primary-foreground">
+          <p className="brutal anim-row-in bg-primary px-2.5 py-1.5 font-display text-[10px] font-bold uppercase tracking-widest text-primary-foreground">
             {note}
           </p>
         ) : null}
 
-        <InputPanel
-          input={input}
-          onChange={update}
-          onReset={() => setInput(DEFAULT_INPUT)}
-          kursLoading={kurs.loading}
-          kursError={kurs.error}
-          kursUpdatedAt={kurs.updatedAt}
-          onRefreshKurs={kurs.refresh}
-        />
+        <div className="anim-section" style={{ animationDelay: "60ms" }}>
+          <InputPanel
+            input={input}
+            onChange={update}
+            onReset={() => setInput(DEFAULT_INPUT)}
+            kursLoading={kurs.loading}
+            kursError={kurs.error}
+            kursUpdatedAt={kurs.updatedAt}
+            onRefreshKurs={kurs.refresh}
+          />
+        </div>
 
         <div
-          className={
-            pending ? "flex flex-col gap-3 opacity-50 transition-opacity" : "flex flex-col gap-3 transition-opacity"
-          }
+          className={`soft-swap flex flex-col gap-3 ${
+            pending ? "scale-[0.995] opacity-45 blur-[1px]" : "scale-100 opacity-100 blur-0"
+          }`}
         >
+
         <SimulationPanel
           frame={frame}
           totalSteps={totalSteps}
