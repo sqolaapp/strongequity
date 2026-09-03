@@ -6,7 +6,6 @@ interface SummaryCardsProps {
   entries: number;
   currency: Currency;
   kurs: number;
-  bufferPct: number;
   lossEntries: number;
 }
 
@@ -45,7 +44,6 @@ export function SummaryCards({
   entries,
   currency,
   kurs,
-  bufferPct,
   lossEntries,
 }: SummaryCardsProps) {
   const tone = riskTone(result.riskPct);
@@ -68,8 +66,8 @@ export function SummaryCards({
         </div>
 
         <Row
-          label={`Modal pas untuk menahan ${lossEntries} entry loss (+ buffer ${bufferPct}%)`}
-          value={money(result.requiredUsd * 100)}
+          label={`Modal pas untuk menahan ${lossEntries} entry loss`}
+          value={money(result.peakLossCent)}
           tone={survived ? "primary" : "plain"}
         />
         <Row

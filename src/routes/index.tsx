@@ -118,7 +118,6 @@ function Index() {
           entries={input.entries}
           currency={currency}
           kurs={input.kurs}
-          bufferPct={input.bufferPct}
           lossEntries={input.lossEntries}
         />
 
