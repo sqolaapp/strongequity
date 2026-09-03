@@ -3,8 +3,10 @@ export interface CalcInput {
   lot: number; // lot awal
   multiplier: number; // 1 = flat, >1 = martingale
   entries: number; // jumlah entry
-  /** Berapa entry yang berakhir loss. Sisanya (entries - lossEntries) profit dengan TP 1 grid. */
+  /** Berapa entry yang berakhir loss (floating). Sisanya profit saat harga berbalik. */
   lossEntries: number;
+  /** BUY: loss dari atas ke bawah, profit dari bawah ke atas. SELL: kebalikannya. */
+  direction: "buy" | "sell";
   kurs: number; // USD -> IDR
   pipValueCent: number; // nilai 1 pip untuk 1,00 lot (dalam cent). Default 100¢ = $1
   modalUsd: number; // equity yang Anda punya
@@ -85,13 +87,20 @@ export function computeKetahanan(input: CalcInput): CalcResult {
   let cumLot = 0;
   let blownAtEntry: number | null = null;
 
+  const profitEntries = input.entries - lossEntries;
   for (let i = 1; i <= input.entries; i++) {
     const lot = lotAt(input.lot, input.multiplier, i);
-    const isProfit = i > lossEntries;
+    // BUY: entry loss = yang di atas (1..L), profit = dari bawah ke atas (L+1..N).
+    // SELL: dibalik — loss di bawah (N-L+1..N), profit dari atas ke bawah (1..P).
+    const isProfit =
+      input.direction === "buy" ? i > lossEntries : i <= profitEntries;
     // Entry loss: floating sesuai jarak ke titik terjauh.
-    // Entry profit: harga berbalik dan kena TP 1 grid (point pips).
+    // Entry profit: harga berbalik; entry terdekat harga profit duluan,
+    // makin jauh dari titik balik makin besar profitnya (1, 2, 3, ... grid).
+    const profitGrid =
+      input.direction === "buy" ? i - lossEntries : profitEntries + 1 - i;
     const distancePips = isProfit
-      ? input.point
+      ? profitGrid * input.point
       : distanceAt(input.point, input.entries, i);
     const plCent = isProfit
       ? lossCentAt(lot, distancePips, pipValueCent)
@@ -173,6 +182,7 @@ export const DEFAULT_INPUT: CalcInput = {
   multiplier: 1,
   entries: 20,
   lossEntries: 20,
+  direction: "buy",
   kurs: 17653,
   pipValueCent: 100,
   modalUsd: 3000,
