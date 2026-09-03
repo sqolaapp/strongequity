@@ -103,6 +103,13 @@ function Index() {
           onRefreshKurs={kurs.refresh}
         />
 
+        <SimulationPanel
+          result={result}
+          currency={currency}
+          kurs={input.kurs}
+          modalUsd={input.modalUsd}
+        />
+
         <EntriesTable
           rows={result.rows}
           entries={input.entries}
@@ -112,6 +119,7 @@ function Index() {
           onCurrencyChange={setCurrency}
           kurs={input.kurs}
         />
+
 
         <SummaryCards
           result={result}
