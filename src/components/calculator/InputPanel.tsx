@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, RefreshCw, RotateCcw } from "lucide-react";
+import { RefreshCw, RotateCcw } from "lucide-react";
 import { NumberField } from "./NumberField";
 import type { CalcInput } from "@/lib/ketahanan";
 
@@ -27,44 +27,15 @@ export function InputPanel({
         <h2 className="font-display text-xs font-bold uppercase tracking-widest text-foreground">
           Input
         </h2>
-        <div className="flex items-center gap-1.5">
-          <div
-            role="group"
-            aria-label="Arah posisi"
-            className="brutal flex overflow-hidden bg-secondary"
-          >
-            {(["buy", "sell"] as const).map((dir) => (
-              <button
-                key={dir}
-                type="button"
-                onClick={() => onChange("direction", dir)}
-                aria-pressed={input.direction === dir}
-                title={dir === "buy" ? "Buy: profit dari bawah ke atas" : "Sell: profit dari atas ke bawah"}
-                className={`flex items-center gap-1 px-2 py-1.5 font-display text-[10px] font-bold uppercase tracking-widest ${
-                  input.direction === dir
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground"
-                }`}
-              >
-                {dir === "buy" ? (
-                  <ArrowUp className="size-3" strokeWidth={3} />
-                ) : (
-                  <ArrowDown className="size-3" strokeWidth={3} />
-                )}
-                {dir}
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={onReset}
-            aria-label="Reset input"
-            title="Reset"
-            className="brutal-press bg-secondary p-1.5 text-secondary-foreground"
-          >
-            <RotateCcw className="size-4" strokeWidth={2.5} />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onReset}
+          aria-label="Reset input"
+          title="Reset"
+          className="brutal-press bg-secondary p-1.5 text-secondary-foreground"
+        >
+          <RotateCcw className="size-4" strokeWidth={2.5} />
+        </button>
       </div>
 
       <div className="mt-3 grid grid-cols-3 gap-2 md:grid-cols-6">
