@@ -1,5 +1,5 @@
-import type { CalcResult } from "@/lib/ketahanan";
-import { fmtCent, fmtLot, fmtPct, fmtPips, fmtRp, fmtUsd } from "@/lib/ketahanan";
+import type { CalcResult, Currency } from "@/lib/ketahanan";
+import { fmtLot, fmtMoney, fmtMoneySigned, fmtPct, fmtPips } from "@/lib/ketahanan";
 
 interface SummaryCardsProps {
   result: CalcResult;
