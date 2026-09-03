@@ -67,12 +67,18 @@ export function InputPanel({
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-3 gap-2 md:grid-cols-6">
+      <div className="mt-3 grid grid-cols-4 gap-2 lg:grid-cols-7">
         <NumberField
           label="JARAK (POINT)"
           hint="Jarak antar entry (pips)"
           value={input.point}
           onChange={(v) => onChange("point", v)}
+        />
+        <NumberField
+          label="Lot"
+          hint="Lot awal entry ke-1"
+          value={input.lot}
+          onChange={(v) => onChange("lot", v)}
         />
         <NumberField
           label="Multiplier"
