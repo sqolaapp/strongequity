@@ -6,6 +6,8 @@ interface SummaryCardsProps {
   entries: number;
   currency: Currency;
   kurs: number;
+  bufferPct: number;
+  lossEntries: number;
 }
 
 function riskTone(pct: number): { label: string; className: string } {
@@ -15,144 +17,116 @@ function riskTone(pct: number): { label: string; className: string } {
   return { label: "MC / BLOWN", className: "bg-destructive text-destructive-foreground" };
 }
 
-export function StatCard({
+function Row({
   label,
   value,
-  suffix,
   tone = "plain",
 }: {
   label: string;
   value: string;
-  suffix?: string | undefined;
   tone?: "plain" | "primary" | "danger";
 }) {
-  const bg =
-    tone === "primary" ? "bg-primary" : tone === "danger" ? "bg-destructive" : "bg-card";
   const fg =
     tone === "primary"
-      ? "text-primary-foreground"
+      ? "text-primary"
       : tone === "danger"
-        ? "text-destructive-foreground"
+        ? "text-destructive"
         : "text-foreground";
-  const labelFg =
-    tone === "plain" ? "text-muted-foreground" : `${fg} opacity-80`;
-
   return (
-    <div className={`brutal p-2.5 ${bg}`}>
-      <p className={`font-display text-[9px] font-bold uppercase tracking-widest ${labelFg}`}>
-        {label}
-      </p>
-      <p className={`mt-0.5 font-mono text-sm font-bold sm:text-base ${fg}`}>
-        {value}
-        {suffix ? <span className="ml-0.5 text-[10px]">{suffix}</span> : null}
-      </p>
+    <div className="flex items-baseline justify-between gap-3 border-b-2 border-foreground/10 px-3 py-2 last:border-b-0">
+      <p className="text-[11px] leading-snug text-muted-foreground">{label}</p>
+      <p className={`shrink-0 font-mono text-xs font-bold sm:text-sm ${fg}`}>{value}</p>
     </div>
   );
 }
 
-export function SummaryCards({ result, entries, currency, kurs }: SummaryCardsProps) {
+export function SummaryCards({
+  result,
+  entries,
+  currency,
+  kurs,
+  bufferPct,
+  lossEntries,
+}: SummaryCardsProps) {
   const tone = riskTone(result.riskPct);
   const survived = result.blownAtEntry === null;
+  const money = (cent: number) => fmtMoney(cent, currency, kurs);
   const signed = (cent: number) => fmtMoneySigned(cent, currency, kurs);
 
   return (
     <section aria-label="Ringkasan hasil" className="flex flex-col gap-2.5">
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        <StatCard
-          label="Net Profit/Loss"
-          value={signed(result.totalCent)}
-          tone={result.totalCent >= 0 ? "primary" : "danger"}
-        />
-        <StatCard
-          label="Total Loss"
-          value={fmtMoney(result.totalLossCent, currency, kurs)}
-          suffix={result.lossEntries > 0 ? `${result.lossEntries} entry` : undefined}
-          tone="danger"
-        />
-        <StatCard
-          label="Total Profit"
-          value={fmtMoney(result.totalProfitCent, currency, kurs)}
-          suffix={result.profitEntries > 0 ? `${result.profitEntries} entry` : undefined}
-          tone="primary"
-        />
-        <StatCard
-          label="Pertumbuhan %"
-          value={fmtPct(result.netProfitPct)}
-          tone={result.netProfitPct >= 0 ? "primary" : "danger"}
-        />
-      </div>
-
-      <div className="brutal bg-card p-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <p className="font-display text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-              Risiko terhadap modal
-            </p>
-            <p className="font-mono text-xl font-bold text-foreground">{fmtPct(result.riskPct)}</p>
-          </div>
+      <div className="brutal bg-card">
+        <div className="flex items-center justify-between gap-2 border-b-2 border-foreground px-3 py-2">
+          <h2 className="font-display text-xs font-bold uppercase tracking-widest text-foreground">
+            Ringkasan
+          </h2>
           <span
-            className={`brutal px-2.5 py-1 font-display text-[10px] font-bold tracking-widest ${tone.className}`}
+            className={`brutal px-2 py-0.5 font-display text-[9px] font-bold tracking-widest ${tone.className}`}
           >
             {tone.label}
           </span>
         </div>
-        <div className="brutal mt-2.5 h-3 w-full overflow-hidden bg-muted p-0">
-          <div
-            className={`h-full transition-all duration-300 ${
-              result.riskPct > 100 ? "bg-destructive" : "bg-primary"
-            }`}
-            style={{ width: `${Math.min(100, result.riskPct)}%` }}
-          />
-        </div>
-        <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
-          {survived ? (
-            <>
-              Modal Anda menahan semua {entries} entry. Equity minimum:{" "}
-              <span className="font-mono font-bold text-foreground">
-                {signed(result.totalLossCent)}
-              </span>
-              , disarankan{" "}
-              <span className="font-mono font-bold text-foreground">
-                {signed(result.requiredUsd * 100)}
-              </span>{" "}
-              dengan tambahan buffer 20%.
-            </>
-          ) : (
-            <>
-              Modal habis di{" "}
-              <span className="font-mono font-bold text-destructive">
-                entry #{result.blownAtEntry}
-              </span>{" "}
-              — hanya {result.survivedEntries} entry yang tertahan. Butuh minimal{" "}
-              <span className="font-mono font-bold text-foreground">
-                {signed(result.requiredUsd * 100)}
-              </span>
-              .
-            </>
-          )}
-        </p>
-      </div>
 
-      <div className="grid grid-cols-3 gap-2.5">
-        <div className="brutal bg-card p-2.5">
-          <p className="font-display text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-            Total / Akhir Lot
-          </p>
-          <div className="mt-0.5 flex items-baseline gap-1.5 font-mono text-sm font-bold text-foreground sm:text-base">
-            <span>{fmtLot(result.totalLot)}</span>
-            <span className="text-[10px] text-muted-foreground">/</span>
-            <span>{fmtLot(result.worstLot)}</span>
-          </div>
-        </div>
-        <StatCard
-          label="Tahan 1 entry"
-          value={`${fmtPips(result.maxDistanceFirstEntryPips)} pips`}
+        <Row
+          label={`Modal pas untuk menahan ${lossEntries} entry loss (+ buffer ${bufferPct}%)`}
+          value={money(result.requiredUsd * 100)}
+          tone={survived ? "primary" : "plain"}
         />
-        <StatCard
-          label="Sisa equity"
+        <Row
+          label={`Total loss (${result.lossEntries} entry)`}
+          value={money(result.totalLossCent)}
+          tone="danger"
+        />
+        <Row
+          label={`Total profit (${result.profitEntries} entry)`}
+          value={money(result.totalProfitCent)}
+          tone="primary"
+        />
+        <Row
+          label="Net profit / loss"
+          value={signed(result.totalCent)}
+          tone={result.totalCent >= 0 ? "primary" : "danger"}
+        />
+        <Row
+          label="Pertumbuhan terhadap modal"
+          value={fmtPct(result.netProfitPct)}
+          tone={result.netProfitPct >= 0 ? "primary" : "danger"}
+        />
+        <Row
+          label="Risiko floating terhadap modal"
+          value={fmtPct(result.riskPct)}
+          tone={result.riskPct > 70 ? "danger" : "plain"}
+        />
+        <Row label="Total lot / lot entry terakhir" value={`${fmtLot(result.totalLot)} / ${fmtLot(result.worstLot)}`} />
+        <Row label="Modal saat ini tahan 1 entry" value={`${fmtPips(result.maxDistanceFirstEntryPips)} pips`} />
+        <Row
+          label="Sisa equity di titik terburuk"
           value={signed(result.equityLeftUsd * 100)}
           tone={result.equityLeftUsd < 0 ? "danger" : "plain"}
         />
+        {survived ? (
+          <Row label="Status ketahanan" value={`Modal menahan semua ${entries} entry`} tone="primary" />
+        ) : (
+          <Row
+            label="Status ketahanan"
+            value={`MC di entry #${result.blownAtEntry} — tertahan ${result.survivedEntries} entry`}
+            tone="danger"
+          />
+        )}
+
+        <div className="px-3 py-2.5">
+          <div className="brutal h-2.5 w-full overflow-hidden bg-muted p-0">
+            <div
+              className={`h-full transition-all duration-300 ${
+                result.riskPct > 100 ? "bg-destructive" : "bg-primary"
+              }`}
+              style={{ width: `${Math.min(100, result.riskPct)}%` }}
+            />
+          </div>
+          <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">
+            Bar = floating loss maksimum dibanding modal Anda saat ini.
+          </p>
+        </div>
       </div>
     </section>
   );

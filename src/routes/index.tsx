@@ -118,6 +118,8 @@ function Index() {
           entries={input.entries}
           currency={currency}
           kurs={input.kurs}
+          bufferPct={input.bufferPct}
+          lossEntries={input.lossEntries}
         />
 
         <footer className="pb-4 text-[10px] leading-relaxed text-muted-foreground">
