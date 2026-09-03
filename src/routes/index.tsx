@@ -100,6 +100,12 @@ function Index() {
 
         <SummaryCards result={result} entries={input.entries} />
 
+        <EntryLossControl
+          value={input.lossEntries}
+          entries={input.entries}
+          onChange={(v) => update("lossEntries", v)}
+        />
+
         <EntriesTable rows={result.rows} />
 
         <footer className="pb-4 text-[10px] leading-relaxed text-muted-foreground">
