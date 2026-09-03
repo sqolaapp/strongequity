@@ -56,7 +56,7 @@ export function computeKetahanan(input: CalcInput): CalcResult {
     totalCent,
     totalUsd,
     totalRp,
-    worstLot: rows.length ? rows[rows.length - 1].lot : 0,
+    worstLot: rows.length ? (rows.at(-1)?.lot ?? 0) : 0,
   };
 }
 
