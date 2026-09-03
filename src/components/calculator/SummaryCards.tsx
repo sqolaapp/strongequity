@@ -146,7 +146,7 @@ export function SummaryCards({ result, entries }: SummaryCardsProps) {
         <StatCard
           label="Net Profit/Loss"
           value={`$ ${fmtUsd(result.netProfitUsd)}`}
-          suffix={result.netProfitUsd >= 0 ? "+" : "-"}
+          suffix=""
           tone={result.netProfitUsd >= 0 ? "primary" : "danger"}
         />
         <StatCard
