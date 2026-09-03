@@ -38,7 +38,7 @@ export function InputPanel({
         </button>
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
         <NumberField
           label="Point"
           hint="Jarak antar entry (pips)"
@@ -63,7 +63,7 @@ export function InputPanel({
           value={input.modalUsd}
           onChange={(v) => onChange("modalUsd", v)}
         />
-        <div className="relative col-span-2 sm:col-span-2">
+        <div className="relative col-span-2 sm:col-span-1">
           <NumberField
             label="Kurs"
             hint={
