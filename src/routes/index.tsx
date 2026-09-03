@@ -3,7 +3,10 @@ import { useMemo, useState } from "react";
 import { InputPanel } from "@/components/calculator/InputPanel";
 import { SummaryCards } from "@/components/calculator/SummaryCards";
 import { EntriesTable } from "@/components/calculator/EntriesTable";
-import { computeKetahanan, fmtLot, type CalcInput } from "@/lib/ketahanan";
+import { PresetBar } from "@/components/calculator/PresetBar";
+import { ThemeToggle } from "@/components/calculator/ThemeToggle";
+import { usePresets } from "@/hooks/use-presets";
+import { computeKetahanan, DEFAULT_INPUT, type CalcInput } from "@/lib/ketahanan";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -12,7 +15,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Hitung berapa equity yang harus Anda punya agar strategi multi-entry bertahan: floating loss total dalam cent, USD, rupiah, dan persen risiko modal.",
+          "Hitung berapa equity yang harus Anda punya agar strategi multi-entry bertahan: floating loss total dalam cent, USD, rupiah, persen risiko, plus preset tersimpan.",
       },
       { property: "og:title", content: "Kalkulator Ketahanan Equity" },
       {
@@ -20,88 +23,78 @@ export const Route = createFileRoute("/")({
         content:
           "Simulasi floating loss multi-entry flat & martingale dengan output cent, USD, rupiah, dan persen risiko.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Index,
 });
 
-const DEFAULTS: CalcInput = {
-  point: 100,
-  lot: 0.1,
-  multiplier: 1,
-  entries: 20,
-  kurs: 16500,
-};
-
 function Index() {
-  const [input, setInput] = useState<CalcInput>(DEFAULTS);
-  const [modalUsd, setModalUsd] = useState(3000);
+  const [input, setInput] = useState<CalcInput>(DEFAULT_INPUT);
+  const [note, setNote] = useState<string | null>(null);
+  const { presets, savePreset, deletePreset } = usePresets();
 
   const result = useMemo(() => computeKetahanan(input), [input]);
 
   const update = <K extends keyof CalcInput>(key: K, value: CalcInput[K]) =>
     setInput((prev) => ({ ...prev, [key]: value }));
 
-  const reset = () => {
-    setInput(DEFAULTS);
-    setModalUsd(3000);
+  const flash = (msg: string) => {
+    setNote(msg);
+    window.setTimeout(() => setNote(null), 2200);
+  };
+
+  const handleSave = (name: string) => {
+    const saved = savePreset(name, input);
+    flash(`Preset "${saved}" tersimpan.`);
+  };
+
+  const handleLoad = (loaded: CalcInput) => {
+    setInput({ ...DEFAULT_INPUT, ...loaded });
+    flash("Preset dimuat.");
   };
 
   return (
-    <main className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-5xl flex-col gap-6">
-        <header>
-          <p className="font-display text-xs font-semibold uppercase tracking-[0.25em] text-primary">
-            My Jurnal — Calculator
-          </p>
-          <h1 className="mt-2 font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Kalkulator Ketahanan Equity
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Hitung total floating loss dari seluruh entry Anda, lalu lihat berapa
-            equity minimum yang harus tersedia agar posisi tetap bertahan sampai
-            entry terakhir.
-          </p>
+    <main className="min-h-screen bg-background px-3 py-5 sm:px-5">
+      <div className="mx-auto flex max-w-3xl flex-col gap-3">
+        <header className="flex items-start justify-between gap-3">
+          <div>
+            <p className="font-display text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
+              My Jurnal
+            </p>
+            <h1 className="font-display text-xl font-extrabold uppercase leading-tight tracking-tight text-foreground sm:text-2xl">
+              Kalkulator Ketahanan Equity
+            </h1>
+          </div>
+          <ThemeToggle />
         </header>
 
-        <InputPanel
-          input={input}
-          modalUsd={modalUsd}
-          onChange={update}
-          onModalChange={setModalUsd}
-          onReset={reset}
+        {note ? (
+          <p className="brutal bg-primary px-2.5 py-1.5 font-display text-[10px] font-bold uppercase tracking-widest text-primary-foreground">
+            {note}
+          </p>
+        ) : null}
+
+        <InputPanel input={input} onChange={update} onReset={() => setInput(DEFAULT_INPUT)} />
+
+        <PresetBar
+          presets={presets}
+          onLoad={handleLoad}
+          onSave={handleSave}
+          onDelete={deletePreset}
         />
 
-        <SummaryCards result={result} modalUsd={modalUsd} />
-
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <InfoBox label="Total posisi" value={`${input.entries} entry`} />
-          <InfoBox label="Lot entry terakhir" value={fmtLot(result.worstLot)} />
-          <InfoBox
-            label="Total jarak floating"
-            value={`${(input.entries * input.point).toLocaleString("id-ID")} pips`}
-          />
-        </div>
+        <SummaryCards result={result} entries={input.entries} />
 
         <EntriesTable rows={result.rows} />
 
-        <footer className="pb-4 text-xs leading-relaxed text-muted-foreground">
-          Asumsi perhitungan: 1 pip pada 1,00 lot = 100 cent ($1 per 0,10 lot per
-          pip). Entry ke-i berjarak (entries + 1 − i) × point dari titik terjauh,
-          dan lot entry ke-i = lot × multiplier^(i−1).
+        <footer className="pb-4 text-[10px] leading-relaxed text-muted-foreground">
+          Rumus: lot entry ke-i = lot × multiplier^(i−1); jarak entry ke-i = (entries + 1 − i) ×
+          point; floating loss = lot × jarak × nilai per pip. Skenario terburuk: harga menembus
+          semua entry sampai titik terjauh. Preset disimpan di browser Anda (local storage).
         </footer>
       </div>
     </main>
-  );
-}
-
-function InfoBox({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-border bg-card px-4 py-3">
-      <p className="font-display text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-        {label}
-      </p>
-      <p className="mt-1 font-mono text-lg font-semibold text-foreground">{value}</p>
-    </div>
   );
 }
