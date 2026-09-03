@@ -12,7 +12,9 @@ export function NumberField({ label, hint, value, onChange }: NumberFieldProps) 
   const [text, setText] = useState(String(value).replace(".", ","));
 
   useEffect(() => {
-    setText(String(value).replace(".", ","));
+    setText((current) =>
+      parseIdNumber(current) === value ? current : String(value).replace(".", ",")
+    );
   }, [value]);
 
   const commit = (raw: string) => {
