@@ -129,9 +129,16 @@ export function SummaryCards({ result, entries }: SummaryCardsProps) {
           suffix={`-${fmtCent(result.totalLossCent)}¢`}
           tone="danger"
         />
-        
-        <StatCard label="Total lot" value={fmtLot(result.totalLot)} />
-        <StatCard label="Lot entry akhir" value={fmtLot(result.worstLot)} />
+        <div className="brutal bg-card p-2.5">
+          <p className="font-display text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+            Total / Akhir Lot
+          </p>
+          <div className="mt-0.5 flex items-baseline gap-1.5 font-mono text-sm font-bold text-foreground sm:text-base">
+            <span>{fmtLot(result.totalLot)}</span>
+            <span className="text-[10px] text-muted-foreground">/</span>
+            <span>{fmtLot(result.worstLot)}</span>
+          </div>
+        </div>
         <StatCard
           label="Tahan 1 entry"
           value={`${fmtPips(result.maxDistanceFirstEntryPips)} pips`}
