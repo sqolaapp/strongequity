@@ -23,7 +23,7 @@ export function StatCard({
 }: {
   label: string;
   value: string;
-  suffix?: string;
+  suffix?: string | undefined;
   tone?: "plain" | "primary" | "danger";
 }) {
   const bg =
