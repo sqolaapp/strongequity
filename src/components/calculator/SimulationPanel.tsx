@@ -88,9 +88,10 @@ export function SimulationPanel({
             onClick={onToggle}
             aria-label={playing ? "Jeda simulasi" : "Mulai simulasi"}
             title={playing ? "Jeda" : "Mulai simulasi"}
-            className="brutal-press bg-primary p-1.5 text-primary-foreground"
+            className={`brutal-press bg-primary p-1.5 text-primary-foreground ${playing ? "anim-live" : ""}`}
           >
             {playing ? <Pause className="size-4" strokeWidth={2.5} /> : <Play className="size-4" strokeWidth={2.5} />}
+
           </button>
           <button
             type="button"
