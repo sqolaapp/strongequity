@@ -1,3 +1,4 @@
+import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "ketahanan-theme";
@@ -29,9 +30,10 @@ export function ThemeToggle() {
       type="button"
       onClick={toggle}
       aria-label="Ganti tema terang atau gelap"
-      className="brutal-press bg-accent px-2.5 py-1.5 font-display text-[10px] font-bold uppercase tracking-widest text-accent-foreground"
+      title={dark ? "Mode gelap" : "Mode terang"}
+      className="brutal-press bg-accent p-1.5 text-accent-foreground"
     >
-      {dark ? "DARK" : "LIGHT"}
+      {dark ? <Moon className="size-4" strokeWidth={2.5} /> : <Sun className="size-4" strokeWidth={2.5} />}
     </button>
   );
 }

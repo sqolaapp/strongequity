@@ -1,3 +1,4 @@
+import { Bookmark } from "lucide-react";
 import { useState } from "react";
 import { SAMPLE_PRESETS, type Preset } from "@/hooks/use-presets";
 import type { CalcInput } from "@/lib/ketahanan";

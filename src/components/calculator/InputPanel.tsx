@@ -1,3 +1,4 @@
+import { RefreshCw, RotateCcw } from "lucide-react";
 import { NumberField } from "./NumberField";
 import type { CalcInput } from "@/lib/ketahanan";
 
@@ -5,9 +6,21 @@ interface InputPanelProps {
   input: CalcInput;
   onChange: <K extends keyof CalcInput>(key: K, value: CalcInput[K]) => void;
   onReset: () => void;
+  kursLoading?: boolean;
+  kursError?: string | null;
+  kursUpdatedAt?: string | null;
+  onRefreshKurs?: () => void;
 }
 
-export function InputPanel({ input, onChange, onReset }: InputPanelProps) {
+export function InputPanel({
+  input,
+  onChange,
+  onReset,
+  kursLoading,
+  kursError,
+  kursUpdatedAt,
+  onRefreshKurs,
+}: InputPanelProps) {
   return (
     <section aria-label="Input kalkulator" className="brutal bg-card p-3">
       <div className="flex items-center justify-between gap-2">
@@ -17,9 +30,11 @@ export function InputPanel({ input, onChange, onReset }: InputPanelProps) {
         <button
           type="button"
           onClick={onReset}
-          className="brutal-press bg-secondary px-2 py-1 font-display text-[10px] font-bold uppercase tracking-widest text-secondary-foreground"
+          aria-label="Reset input"
+          title="Reset"
+          className="brutal-press bg-secondary p-1.5 text-secondary-foreground"
         >
-          Reset
+          <RotateCcw className="size-4" strokeWidth={2.5} />
         </button>
       </div>
 
@@ -29,12 +44,6 @@ export function InputPanel({ input, onChange, onReset }: InputPanelProps) {
           hint="Jarak antar entry (pips)"
           value={input.point}
           onChange={(v) => onChange("point", v)}
-        />
-        <NumberField
-          label="Lot"
-          hint="Lot entry pertama"
-          value={input.lot}
-          onChange={(v) => onChange("lot", v)}
         />
         <NumberField
           label="Multiplier"
@@ -60,18 +69,34 @@ export function InputPanel({ input, onChange, onReset }: InputPanelProps) {
           value={input.pipValueCent}
           onChange={(v) => onChange("pipValueCent", v)}
         />
-        <NumberField
-          label="Buffer %"
-          hint="Cadangan aman"
-          value={input.bufferPct}
-          onChange={(v) => onChange("bufferPct", v)}
-        />
-        <NumberField
-          label="Kurs"
-          hint="USD → IDR"
-          value={input.kurs}
-          onChange={(v) => onChange("kurs", v)}
-        />
+        <div className="relative">
+          <NumberField
+            label="Kurs"
+            hint={
+              kursError
+                ? kursError
+                : kursUpdatedAt
+                  ? "Kurs live USD → IDR"
+                  : "USD → IDR"
+            }
+            value={input.kurs}
+            onChange={(v) => onChange("kurs", v)}
+          />
+          {onRefreshKurs ? (
+            <button
+              type="button"
+              onClick={onRefreshKurs}
+              aria-label="Perbarui kurs live"
+              title="Perbarui kurs"
+              className="brutal-press absolute right-1 top-[22px] bg-secondary p-1 text-secondary-foreground"
+            >
+              <RefreshCw
+                className={`size-3.5 ${kursLoading ? "animate-spin" : ""}`}
+                strokeWidth={2.5}
+              />
+            </button>
+          ) : null}
+        </div>
       </div>
     </section>
   );
