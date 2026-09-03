@@ -70,10 +70,10 @@ function Index() {
         <header className="flex items-start justify-between gap-3">
           <div>
             <p className="font-display text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
-              My Jurnal
+              SUPER CLUSTER
             </p>
             <h1 className="font-display text-xl font-extrabold uppercase leading-tight tracking-tight text-foreground sm:text-2xl">
-              KALKULATOR EQUITY
+              HITUNG STRONG EQUITY
             </h1>
           </div>
           <div className="flex items-center gap-2">
