@@ -76,9 +76,13 @@ export function SimulationPanel({
               className="brutal w-16 bg-background px-1.5 py-1 text-right font-mono text-[10px] font-bold text-foreground outline-none"
             />
           </label>
-          <span className={`brutal px-2 py-0.5 font-display text-[9px] font-bold tracking-widest ${phaseClass}`}>
+          <span
+            key={phase}
+            className={`brutal anim-value px-2 py-0.5 font-display text-[9px] font-bold tracking-widest ${phaseClass}`}
+          >
             {phase}
           </span>
+
           <button
             type="button"
             onClick={onToggle}
