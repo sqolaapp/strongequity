@@ -9,7 +9,7 @@ interface EntriesTableProps {
   currency: Currency;
   onCurrencyChange: (value: Currency) => void;
   kurs: number;
-  visibleCount?: number | undefined;
+  simNote?: string | undefined;
 }
 
 export function EntriesTable({
@@ -20,9 +20,9 @@ export function EntriesTable({
   currency,
   onCurrencyChange,
   kurs,
-  visibleCount,
+  simNote,
 }: EntriesTableProps) {
-  const shownRows = visibleCount === undefined ? rows : rows.slice(0, visibleCount);
+  const shownRows = rows;
   const unit = currency === "cent" ? "¢" : currency === "usd" ? "$" : "Rp";
 
   return (
@@ -139,9 +139,9 @@ export function EntriesTable({
             ))}
           </tbody>
         </table>
-        {visibleCount !== undefined && shownRows.length < rows.length ? (
+        {simNote ? (
           <p className="border-t-2 border-border px-3 py-1.5 text-left font-display text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-            Simulasi berjalan… {shownRows.length} / {rows.length} entry masuk
+            {simNote}
           </p>
         ) : null}
       </div>
