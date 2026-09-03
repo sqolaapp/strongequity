@@ -275,9 +275,7 @@ export function simulateFrame(input: CalcInput, step: number): SimFrame {
     const lot = lotAt(input.lot, input.multiplier, i);
     const grids = opened + 1 - i - retrace;
     const distancePips = Math.abs(grids) * input.point;
-    const plCent = -grids * lot * distancePips * pipValueCent / Math.max(1, Math.abs(grids) || 1);
     const pl = grids === 0 ? 0 : -Math.sign(grids) * lot * distancePips * pipValueCent;
-    void plCent;
     net += pl;
     cumLot = Math.round((cumLot + lot) * 100) / 100;
     if (-net > peakLoss) peakLoss = -net;
