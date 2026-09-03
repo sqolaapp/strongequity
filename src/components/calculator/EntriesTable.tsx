@@ -9,7 +9,7 @@ interface EntriesTableProps {
   currency: Currency;
   onCurrencyChange: (value: Currency) => void;
   kurs: number;
-  visibleCount?: number;
+  visibleCount?: number | undefined;
 }
 
 export function EntriesTable({
