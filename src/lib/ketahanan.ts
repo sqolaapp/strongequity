@@ -78,16 +78,27 @@ export function lossCentAt(lot: number, distancePips: number, pipValueCent: numb
 export function computeKetahanan(input: CalcInput): CalcResult {
   const pipValueCent = input.pipValueCent > 0 ? input.pipValueCent : 100;
   const modalCent = Math.max(0, input.modalUsd) * 100;
+  const lossEntries = Math.max(0, Math.min(input.entries, Math.round(input.lossEntries)));
   const rows: EntryRow[] = [];
-  let cum = 0;
+  let cum = 0; // akumulasi loss (positif)
+  let profit = 0; // akumulasi profit (positif)
   let cumLot = 0;
   let blownAtEntry: number | null = null;
 
   for (let i = 1; i <= input.entries; i++) {
     const lot = lotAt(input.lot, input.multiplier, i);
-    const distancePips = distanceAt(input.point, input.entries, i);
-    const lossCent = lossCentAt(lot, distancePips, pipValueCent);
-    cum += lossCent;
+    const isProfit = i > lossEntries;
+    // Entry loss: floating sesuai jarak ke titik terjauh.
+    // Entry profit: harga berbalik dan kena TP 1 grid (point pips).
+    const distancePips = isProfit
+      ? input.point
+      : distanceAt(input.point, input.entries, i);
+    const plCent = isProfit
+      ? lossCentAt(lot, distancePips, pipValueCent)
+      : -lossCentAt(lot, distancePips, pipValueCent);
+    if (isProfit) profit += plCent;
+    else cum += -plCent;
+    const netCent = profit - cum;
     cumLot = Math.round((cumLot + lot) * 100) / 100;
     const blown = modalCent > 0 && cum > modalCent;
     if (blown && blownAtEntry === null) blownAtEntry = i;
@@ -95,29 +106,37 @@ export function computeKetahanan(input: CalcInput): CalcResult {
       index: i,
       lot,
       distancePips,
-      lossCent,
-      cumLossCent: cum,
+      plCent,
+      cumPlCent: netCent,
       cumLot,
-      equityLeftUsd: (modalCent - cum) / 100,
+      isProfit,
+      equityLeftUsd: (modalCent + netCent) / 100,
       blown,
     });
   }
 
-  const totalCent = cum;
-  const totalUsd = totalCent / 100;
-  const requiredUsd = totalUsd * (1 + Math.max(0, input.bufferPct) / 100);
+  const peakLossCent = cum; // loss menumpuk dulu sebelum profit masuk
+  const netCent = profit - cum;
+  const totalUsd = netCent / 100;
+  const peakUsd = peakLossCent / 100;
+  const requiredUsd = peakUsd * (1 + Math.max(0, input.bufferPct) / 100);
   const firstLot = lotAt(input.lot, input.multiplier, 1);
 
   return {
     rows,
-    totalCent,
+    totalCent: netCent,
     totalUsd,
     totalRp: totalUsd * input.kurs,
+    totalLossCent: cum,
+    totalProfitCent: profit,
+    peakLossCent,
+    lossEntries,
+    profitEntries: input.entries - lossEntries,
     worstLot: rows.length ? (rows.at(-1)?.lot ?? 0) : 0,
     totalLot: cumLot,
     totalDistancePips: input.entries * input.point,
-    riskPct: input.modalUsd > 0 ? (totalUsd / input.modalUsd) * 100 : 0,
-    equityLeftUsd: input.modalUsd - totalUsd,
+    riskPct: input.modalUsd > 0 ? (peakUsd / input.modalUsd) * 100 : 0,
+    equityLeftUsd: input.modalUsd - peakUsd,
     requiredUsd,
     requiredRp: requiredUsd * input.kurs,
     blownAtEntry,
