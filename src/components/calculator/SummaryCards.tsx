@@ -129,7 +129,7 @@ export function SummaryCards({ result, entries }: SummaryCardsProps) {
           suffix={`-${fmtCent(result.totalLossCent)}¢`}
           tone="danger"
         />
-        <StatCard label="BEP" value="1 entry" suffix="0¢" />
+        
         <StatCard label="Total lot" value={fmtLot(result.totalLot)} />
         <StatCard label="Lot entry akhir" value={fmtLot(result.worstLot)} />
         <StatCard
