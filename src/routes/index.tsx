@@ -6,6 +6,7 @@ import { EntriesTable } from "@/components/calculator/EntriesTable";
 import { PresetModal } from "@/components/calculator/PresetModal";
 import { ThemeToggle } from "@/components/calculator/ThemeToggle";
 import { usePresets } from "@/hooks/use-presets";
+import { useKurs } from "@/hooks/use-kurs";
 import { computeKetahanan, DEFAULT_INPUT, type CalcInput } from "@/lib/ketahanan";
 
 export const Route = createFileRoute("/")({
@@ -36,6 +37,8 @@ function Index() {
   const { presets, savePreset, deletePreset } = usePresets();
 
   const result = useMemo(() => computeKetahanan(input), [input]);
+
+  const kurs = useKurs((rate) => setInput((prev) => ({ ...prev, kurs: rate })));
 
   const update = <K extends keyof CalcInput>(key: K, value: CalcInput[K]) =>
     setInput((prev) => ({ ...prev, [key]: value }));
@@ -84,7 +87,15 @@ function Index() {
           </p>
         ) : null}
 
-        <InputPanel input={input} onChange={update} onReset={() => setInput(DEFAULT_INPUT)} />
+        <InputPanel
+          input={input}
+          onChange={update}
+          onReset={() => setInput(DEFAULT_INPUT)}
+          kursLoading={kurs.loading}
+          kursError={kurs.error}
+          kursUpdatedAt={kurs.updatedAt}
+          onRefreshKurs={kurs.refresh}
+        />
 
         <SummaryCards result={result} entries={input.entries} />
 
