@@ -172,6 +172,7 @@ export const DEFAULT_INPUT: CalcInput = {
   lot: 0.1,
   multiplier: 1,
   entries: 20,
+  lossEntries: 20,
   kurs: 17653,
   pipValueCent: 100,
   modalUsd: 3000,
