@@ -1,5 +1,6 @@
 import { RefreshCw, RotateCcw } from "lucide-react";
 import { NumberField } from "./NumberField";
+import { fmtCent, fmtRp } from "@/lib/ketahanan";
 import type { CalcInput } from "@/lib/ketahanan";
 
 interface InputPanelProps {
