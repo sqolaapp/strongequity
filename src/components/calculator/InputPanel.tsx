@@ -63,13 +63,7 @@ export function InputPanel({
           value={input.modalUsd}
           onChange={(v) => onChange("modalUsd", v)}
         />
-        <NumberField
-          label="¢ / pip / lot"
-          hint="Default 100¢ = $1"
-          value={input.pipValueCent}
-          onChange={(v) => onChange("pipValueCent", v)}
-        />
-        <div className="relative">
+        <div className="relative col-span-2 sm:col-span-2">
           <NumberField
             label="Kurs"
             hint={

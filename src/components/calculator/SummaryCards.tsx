@@ -116,10 +116,9 @@ export function SummaryCards({ result, entries }: SummaryCardsProps) {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
         <StatCard label="Total lot" value={fmtLot(result.totalLot)} />
         <StatCard label="Lot entry akhir" value={fmtLot(result.worstLot)} />
-        <StatCard label="Total jarak" value={`${fmtPips(result.totalDistancePips)} pips`} />
         <StatCard
           label="Tahan 1 entry"
           value={`${fmtPips(result.maxDistanceFirstEntryPips)} pips`}
