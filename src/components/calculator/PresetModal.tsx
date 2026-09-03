@@ -32,9 +32,11 @@ export function PresetModal({ presets, onLoad, onSave, onDelete }: PresetModalPr
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="brutal-press bg-secondary px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-widest text-secondary-foreground"
+        aria-label="Buka preset"
+        title="Preset"
+        className="brutal-press bg-secondary p-1.5 text-secondary-foreground"
       >
-        Preset
+        <Bookmark className="size-4" strokeWidth={2.5} />
       </button>
 
       {open ? (

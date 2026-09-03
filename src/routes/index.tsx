@@ -6,6 +6,7 @@ import { EntriesTable } from "@/components/calculator/EntriesTable";
 import { PresetModal } from "@/components/calculator/PresetModal";
 import { ThemeToggle } from "@/components/calculator/ThemeToggle";
 import { usePresets } from "@/hooks/use-presets";
+import { useKurs } from "@/hooks/use-kurs";
 import { computeKetahanan, DEFAULT_INPUT, type CalcInput } from "@/lib/ketahanan";
 
 export const Route = createFileRoute("/")({
