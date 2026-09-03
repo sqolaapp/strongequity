@@ -103,13 +103,6 @@ function Index() {
           onRefreshKurs={kurs.refresh}
         />
 
-        <SummaryCards
-          result={result}
-          entries={input.entries}
-          currency={currency}
-          kurs={input.kurs}
-        />
-
         <EntriesTable
           rows={result.rows}
           entries={input.entries}
@@ -117,6 +110,13 @@ function Index() {
           onLossEntriesChange={(v) => update("lossEntries", v)}
           currency={currency}
           onCurrencyChange={setCurrency}
+          kurs={input.kurs}
+        />
+
+        <SummaryCards
+          result={result}
+          entries={input.entries}
+          currency={currency}
           kurs={input.kurs}
         />
 
