@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/calculator/ThemeToggle";
 import { usePresets } from "@/hooks/use-presets";
 import { useKurs } from "@/hooks/use-kurs";
 import { useDebounced } from "@/hooks/use-debounced";
+import { useSimulation } from "@/hooks/use-simulation";
 import {
   computeKetahanan,
   DEFAULT_INPUT,
@@ -44,9 +45,11 @@ function Index() {
   const [currency, setCurrency] = useState<Currency>("cent");
   const { presets, savePreset, deletePreset } = usePresets();
 
-  const debouncedInput = useDebounced(input, 500);
+  const debouncedInput = useDebounced(input, 2000);
   const pending = debouncedInput !== input;
   const result = useMemo(() => computeKetahanan(debouncedInput), [debouncedInput]);
+
+  const sim = useSimulation(result.rows.length, result);
 
   const kurs = useKurs((rate) => setInput((prev) => ({ ...prev, kurs: rate })));
 
@@ -117,6 +120,12 @@ function Index() {
           currency={currency}
           kurs={debouncedInput.kurs}
           modalUsd={debouncedInput.modalUsd}
+          step={sim.step}
+          playing={sim.playing}
+          speedMs={sim.speedMs}
+          onSpeedChange={sim.setSpeedMs}
+          onToggle={sim.toggle}
+          onReset={sim.reset}
         />
 
         <EntriesTable
@@ -127,6 +136,7 @@ function Index() {
           currency={currency}
           onCurrencyChange={setCurrency}
           kurs={debouncedInput.kurs}
+          visibleCount={sim.running ? sim.step : undefined}
         />
 
 
