@@ -1,5 +1,6 @@
 import { RefreshCw, RotateCcw } from "lucide-react";
 import { NumberField } from "./NumberField";
+import { fmtCent, fmtRp } from "@/lib/ketahanan";
 import type { CalcInput } from "@/lib/ketahanan";
 
 interface InputPanelProps {
@@ -67,12 +68,17 @@ export function InputPanel({
             if (input.lossEntries > entries) onChange("lossEntries", entries);
           }}
         />
-        <NumberField
-          label="Modal $"
-          hint="Equity Anda"
-          value={input.modalUsd}
-          onChange={(v) => onChange("modalUsd", v)}
-        />
+        <div>
+          <NumberField
+            label="Modal $"
+            hint="Equity Anda"
+            value={input.modalUsd}
+            onChange={(v) => onChange("modalUsd", v)}
+          />
+          <p className="mt-1 text-[10px] leading-tight text-muted-foreground">
+            ≈ {fmtCent(input.modalUsd * 100)} cent / Rp{fmtRp(input.modalUsd * input.kurs)}
+          </p>
+        </div>
         <div className="relative">
           <NumberField
             label="Kurs"
