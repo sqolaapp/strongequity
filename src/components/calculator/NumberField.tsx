@@ -6,7 +6,6 @@ interface NumberFieldProps {
   hint?: string;
   value: number;
   onChange: (v: number) => void;
-  step?: string;
 }
 
 export function NumberField({ label, hint, value, onChange }: NumberFieldProps) {
@@ -23,17 +22,19 @@ export function NumberField({ label, hint, value, onChange }: NumberFieldProps) 
   };
 
   return (
-    <label className="flex flex-col gap-1.5">
-      <span className="font-display text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+    <label className="flex flex-col gap-1">
+      <span className="font-display text-[10px] font-bold uppercase tracking-widest text-foreground">
         {label}
       </span>
       <input
         inputMode="decimal"
         value={text}
         onChange={(e) => commit(e.target.value)}
-        className="rounded-lg border border-input bg-background px-3 py-2.5 font-mono text-lg text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-ring/40"
+        className="brutal w-full bg-background px-2 py-1.5 font-mono text-sm font-semibold text-foreground outline-none focus:bg-primary/20"
       />
-      {hint ? <span className="text-xs text-muted-foreground">{hint}</span> : null}
+      {hint ? (
+        <span className="text-[10px] leading-tight text-muted-foreground">{hint}</span>
+      ) : null}
     </label>
   );
 }
