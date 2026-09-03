@@ -149,3 +149,20 @@
     color: var(--color-foreground);
   }
 }
+
+@utility brutal {
+  border: 2px solid var(--border);
+  box-shadow: var(--brutal-shadow);
+}
+
+@utility brutal-press {
+  border: 2px solid var(--border);
+  box-shadow: var(--brutal-shadow);
+  transition:
+    box-shadow 0.1s ease,
+    transform 0.1s ease;
+  &:hover {
+    box-shadow: 1px 1px 0 0 var(--border);
+    transform: translate(2px, 2px);
+  }
+}
