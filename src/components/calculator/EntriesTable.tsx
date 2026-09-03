@@ -24,27 +24,40 @@ export function EntriesTable({ rows }: { rows: EntryRow[] }) {
             <tr
               key={row.index}
               className={`border-b border-border/40 last:border-0 ${
-                row.blown ? "bg-destructive/15" : row.isProfit ? "bg-primary/10" : ""
+                row.blown
+                  ? "bg-destructive/15"
+                  : row.status === "profit"
+                    ? "bg-primary/10"
+                    : row.status === "bep"
+                      ? "bg-accent/40"
+                      : ""
               }`}
             >
               <td className="px-1.5 py-0.5 text-left text-muted-foreground">
                 {row.index}
                 <span
                   className={`ml-1 font-display text-[8px] font-bold uppercase ${
-                    row.isProfit ? "text-primary" : "text-destructive"
+                    row.status === "profit"
+                      ? "text-primary"
+                      : row.status === "bep"
+                        ? "text-muted-foreground"
+                        : "text-destructive"
                   }`}
                 >
-                  {row.isProfit ? "TP" : "L"}
+                  {row.status === "profit" ? "TP" : row.status === "bep" ? "BEP" : "L"}
                 </span>
               </td>
               <td className="px-1.5 py-0.5 text-foreground">{fmtLot(row.lot)}</td>
               <td
                 className={`px-1.5 py-0.5 ${
-                  row.isProfit ? "text-primary" : "text-destructive"
+                  row.status === "profit"
+                    ? "text-primary"
+                    : row.status === "bep"
+                      ? "text-muted-foreground"
+                      : "text-destructive"
                 }`}
               >
-                {row.plCent >= 0 ? "+" : "-"}
-                {fmtCent(Math.abs(row.plCent))}
+                {row.status === "bep" ? "0" : `${row.plCent >= 0 ? "+" : "-"}${fmtCent(Math.abs(row.plCent))}`}
               </td>
               <td
                 className={`px-1.5 py-0.5 ${

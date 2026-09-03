@@ -17,12 +17,13 @@ export interface EntryRow {
   index: number;
   lot: number;
   distancePips: number;
-  /** P/L entry ini dalam CENT: negatif = loss, positif = profit. */
+  /** P/L entry ini dalam CENT: negatif = loss, 0 = BEP, positif = profit. */
   plCent: number;
   /** Akumulasi P/L bersih sampai entry ini (cent). Negatif = floating loss. */
   cumPlCent: number;
   cumLot: number;
-  isProfit: boolean;
+  /** loss = floating, bep = pas di titik balik (0), profit = sudah hijau. */
+  status: "loss" | "bep" | "profit";
   /** Sisa equity (USD) pada titik akumulasi entry ini. */
   equityLeftUsd: number;
   /** True jika akumulasi floating loss sampai entry ini sudah melebihi modal. */
@@ -87,26 +88,42 @@ export function computeKetahanan(input: CalcInput): CalcResult {
   let cumLot = 0;
   let blownAtEntry: number | null = null;
 
-  const profitEntries = input.entries - lossEntries;
+  // Selalu ada TEPAT 1 entry BEP (nol) di titik balik, di antara loss dan profit.
+  const profitEntries = Math.max(0, input.entries - lossEntries - 1);
   for (let i = 1; i <= input.entries; i++) {
     const lot = lotAt(input.lot, input.multiplier, i);
-    // BUY: entry loss = yang di atas (1..L), profit = dari bawah ke atas (L+1..N).
-    // SELL: dibalik — loss di bawah (N-L+1..N), profit dari atas ke bawah (1..P).
-    const isProfit =
-      input.direction === "buy" ? i > lossEntries : i <= profitEntries;
+    // BUY: loss di atas (1..L), BEP di L+1, profit dari bawah ke atas.
+    // SELL: dibalik — profit di atas (1..P), BEP di P+1, loss di bawah.
+    const status: EntryRow["status"] =
+      input.direction === "buy"
+        ? i <= lossEntries
+          ? "loss"
+          : i === lossEntries + 1
+            ? "bep"
+            : "profit"
+        : i <= profitEntries
+          ? "profit"
+          : i === profitEntries + 1
+            ? "bep"
+            : "loss";
     // Entry loss: floating sesuai jarak ke titik terjauh.
-    // Entry profit: harga berbalik; entry terdekat harga profit duluan,
-    // makin jauh dari titik balik makin besar profitnya (1, 2, 3, ... grid).
+    // Entry profit: makin jauh dari titik balik (BEP) makin besar profitnya (1, 2, 3, ... grid).
     const profitGrid =
-      input.direction === "buy" ? i - lossEntries : profitEntries + 1 - i;
-    const distancePips = isProfit
-      ? profitGrid * input.point
-      : distanceAt(input.point, input.entries, i);
-    const plCent = isProfit
-      ? lossCentAt(lot, distancePips, pipValueCent)
-      : -lossCentAt(lot, distancePips, pipValueCent);
-    if (isProfit) profit += plCent;
-    else cum += -plCent;
+      input.direction === "buy" ? i - lossEntries - 1 : profitEntries + 1 - i;
+    const distancePips =
+      status === "profit"
+        ? profitGrid * input.point
+        : status === "bep"
+          ? 0
+          : distanceAt(input.point, input.entries, i);
+    const plCent =
+      status === "profit"
+        ? lossCentAt(lot, distancePips, pipValueCent)
+        : status === "bep"
+          ? 0
+          : -lossCentAt(lot, distancePips, pipValueCent);
+    if (status === "profit") profit += plCent;
+    else if (status === "loss") cum += -plCent;
     const netCent = profit - cum;
     cumLot = Math.round((cumLot + lot) * 100) / 100;
     const blown = modalCent > 0 && cum > modalCent;
@@ -118,7 +135,7 @@ export function computeKetahanan(input: CalcInput): CalcResult {
       plCent,
       cumPlCent: netCent,
       cumLot,
-      isProfit,
+      status,
       equityLeftUsd: (modalCent + netCent) / 100,
       blown,
     });
@@ -140,7 +157,7 @@ export function computeKetahanan(input: CalcInput): CalcResult {
     totalProfitCent: profit,
     peakLossCent,
     lossEntries,
-    profitEntries: input.entries - lossEntries,
+    profitEntries,
     worstLot: rows.length ? (rows.at(-1)?.lot ?? 0) : 0,
     totalLot: cumLot,
     totalDistancePips: input.entries * input.point,

@@ -117,6 +117,19 @@ export function SummaryCards({ result, entries }: SummaryCardsProps) {
       </div>
 
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+        <StatCard
+          label={`Total Profit (${result.profitEntries} entry)`}
+          value={`$ ${fmtUsd(result.totalProfitCent / 100)}`}
+          suffix={`+${fmtCent(result.totalProfitCent)}¢`}
+          tone="primary"
+        />
+        <StatCard
+          label={`Total Loss (${result.lossEntries} entry)`}
+          value={`$ ${fmtUsd(result.totalLossCent / 100)}`}
+          suffix={`-${fmtCent(result.totalLossCent)}¢`}
+          tone="danger"
+        />
+        <StatCard label="BEP" value="1 entry" suffix="0¢" />
         <StatCard label="Total lot" value={fmtLot(result.totalLot)} />
         <StatCard label="Lot entry akhir" value={fmtLot(result.worstLot)} />
         <StatCard
