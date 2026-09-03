@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from "react";
 import { Pause, Play, RotateCcw } from "lucide-react";
 import type { CalcResult, Currency } from "@/lib/ketahanan";
 import { fmtLot, fmtMoney, fmtMoneySigned, fmtPct } from "@/lib/ketahanan";
@@ -8,32 +7,27 @@ interface SimulationPanelProps {
   currency: Currency;
   kurs: number;
   modalUsd: number;
+  step: number;
+  playing: boolean;
+  speedMs: number;
+  onSpeedChange: (ms: number) => void;
+  onToggle: () => void;
+  onReset: () => void;
 }
 
-const SPEED_MS = 500;
-
-export function SimulationPanel({ result, currency, kurs, modalUsd }: SimulationPanelProps) {
+export function SimulationPanel({
+  result,
+  currency,
+  kurs,
+  modalUsd,
+  step,
+  playing,
+  speedMs,
+  onSpeedChange,
+  onToggle,
+  onReset,
+}: SimulationPanelProps) {
   const rows = result.rows;
-  const [step, setStep] = useState(0); // 0 = belum entry
-  const [playing, setPlaying] = useState(false);
-  const totalRef = useRef(rows.length);
-
-  // Reset simulasi kalau input berubah.
-  useEffect(() => {
-    totalRef.current = rows.length;
-    setStep(0);
-    setPlaying(false);
-  }, [rows]);
-
-  useEffect(() => {
-    if (!playing) return;
-    if (step >= rows.length) {
-      setPlaying(false);
-      return;
-    }
-    const t = window.setTimeout(() => setStep((s) => Math.min(rows.length, s + 1)), SPEED_MS);
-    return () => window.clearTimeout(t);
-  }, [playing, step, rows.length]);
 
   const current = step > 0 ? (rows[step - 1] ?? null) : null;
   const netCent = current ? current.cumPlCent : 0;
@@ -66,15 +60,25 @@ export function SimulationPanel({ result, currency, kurs, modalUsd }: Simulation
           Simulasi Entry
         </h2>
         <div className="flex items-center gap-2">
+          <label className="flex items-center gap-1">
+            <span className="font-display text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+              Jeda (ms)
+            </span>
+            <input
+              type="number"
+              min={50}
+              step={50}
+              value={speedMs}
+              onChange={(e) => onSpeedChange(Math.max(50, Math.round(Number(e.target.value) || 0)))}
+              className="brutal w-16 bg-background px-1.5 py-1 text-right font-mono text-[10px] font-bold text-foreground outline-none"
+            />
+          </label>
           <span className={`brutal px-2 py-0.5 font-display text-[9px] font-bold tracking-widest ${phaseClass}`}>
             {phase}
           </span>
           <button
             type="button"
-            onClick={() => {
-              if (step >= rows.length) setStep(0);
-              setPlaying((p) => !p);
-            }}
+            onClick={onToggle}
             aria-label={playing ? "Jeda simulasi" : "Mulai simulasi"}
             title={playing ? "Jeda" : "Mulai simulasi"}
             className="brutal-press bg-primary p-1.5 text-primary-foreground"
@@ -83,10 +87,7 @@ export function SimulationPanel({ result, currency, kurs, modalUsd }: Simulation
           </button>
           <button
             type="button"
-            onClick={() => {
-              setPlaying(false);
-              setStep(0);
-            }}
+            onClick={onReset}
             aria-label="Reset simulasi"
             title="Reset simulasi"
             className="brutal-press bg-secondary p-1.5 text-secondary-foreground"

@@ -9,6 +9,7 @@ interface EntriesTableProps {
   currency: Currency;
   onCurrencyChange: (value: Currency) => void;
   kurs: number;
+  visibleCount?: number | undefined;
 }
 
 export function EntriesTable({
@@ -19,7 +20,9 @@ export function EntriesTable({
   currency,
   onCurrencyChange,
   kurs,
+  visibleCount,
 }: EntriesTableProps) {
+  const shownRows = visibleCount === undefined ? rows : rows.slice(0, visibleCount);
   const unit = currency === "cent" ? "¢" : currency === "usd" ? "$" : "Rp";
 
   return (
@@ -76,10 +79,10 @@ export function EntriesTable({
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
+            {shownRows.map((row) => (
               <tr
                 key={row.index}
-                className={`border-b border-border/40 last:border-0 ${
+                className={`animate-fade-in border-b border-border/40 last:border-0 ${
                   row.blown
                     ? "bg-destructive/15"
                     : row.status === "profit"
@@ -136,6 +139,11 @@ export function EntriesTable({
             ))}
           </tbody>
         </table>
+        {visibleCount !== undefined && shownRows.length < rows.length ? (
+          <p className="border-t-2 border-border px-3 py-1.5 text-left font-display text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+            Simulasi berjalan… {shownRows.length} / {rows.length} entry masuk
+          </p>
+        ) : null}
       </div>
     </section>
   );
