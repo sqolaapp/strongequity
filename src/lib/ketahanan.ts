@@ -3,6 +3,8 @@ export interface CalcInput {
   lot: number; // lot awal
   multiplier: number; // 1 = flat, >1 = martingale
   entries: number; // jumlah entry
+  /** Berapa entry yang berakhir loss. Sisanya (entries - lossEntries) profit dengan TP 1 grid. */
+  lossEntries: number;
   kurs: number; // USD -> IDR
   pipValueCent: number; // nilai 1 pip untuk 1,00 lot (dalam cent). Default 100¢ = $1
   modalUsd: number; // equity yang Anda punya
@@ -13,10 +15,13 @@ export interface EntryRow {
   index: number;
   lot: number;
   distancePips: number;
-  lossCent: number;
-  cumLossCent: number;
+  /** P/L entry ini dalam CENT: negatif = loss, positif = profit. */
+  plCent: number;
+  /** Akumulasi P/L bersih sampai entry ini (cent). Negatif = floating loss. */
+  cumPlCent: number;
   cumLot: number;
-  /** Sisa equity (USD) jika harga sampai di titik terjauh dan entry ini sudah terbuka. */
+  isProfit: boolean;
+  /** Sisa equity (USD) pada titik akumulasi entry ini. */
   equityLeftUsd: number;
   /** True jika akumulasi floating loss sampai entry ini sudah melebihi modal. */
   blown: boolean;
@@ -24,17 +29,26 @@ export interface EntryRow {
 
 export interface CalcResult {
   rows: EntryRow[];
+  /** P/L bersih total (cent). Negatif = loss, positif = profit. */
   totalCent: number;
   totalUsd: number;
   totalRp: number;
+  /** Total floating loss (cent, nilai positif) dari entry-entry loss. */
+  totalLossCent: number;
+  /** Total profit (cent) dari entry-entry profit. */
+  totalProfitCent: number;
+  /** Floating loss maksimum (cent) sebelum entry profit mulai menutup. */
+  peakLossCent: number;
+  lossEntries: number;
+  profitEntries: number;
   worstLot: number;
   totalLot: number;
   totalDistancePips: number;
-  /** Persen floating loss terhadap modal. */
+  /** Persen floating loss maksimum terhadap modal. */
   riskPct: number;
   /** Sisa equity setelah floating loss maksimum. */
   equityLeftUsd: number;
-  /** Modal minimum yang disarankan (total loss + buffer). */
+  /** Modal minimum yang disarankan (floating loss maksimum + buffer). */
   requiredUsd: number;
   requiredRp: number;
   /** Entry pertama yang membuat modal habis (null kalau bertahan semua). */
