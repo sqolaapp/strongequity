@@ -151,6 +151,8 @@ export function computeKetahanan(input: CalcInput): CalcResult {
   const peakUsd = peakLossCent / 100;
   const requiredUsd = peakUsd * (1 + Math.max(0, input.bufferPct) / 100);
   const firstLot = lotAt(input.lot, input.multiplier, 1);
+  const netProfitUsd = totalUsd;
+  const netProfitPct = input.modalUsd > 0 ? (netProfitUsd / input.modalUsd) * 100 : 0;
 
   return {
     rows,
@@ -173,6 +175,8 @@ export function computeKetahanan(input: CalcInput): CalcResult {
     survivedEntries: blownAtEntry === null ? input.entries : blownAtEntry - 1,
     maxDistanceFirstEntryPips:
       firstLot > 0 && pipValueCent > 0 ? modalCent / (firstLot * pipValueCent) : 0,
+    netProfitUsd,
+    netProfitPct,
   };
 }
 
