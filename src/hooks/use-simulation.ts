@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export function useSimulation(total: number) {
+export function useSimulation(total: number, resetKey: unknown) {
   const [step, setStep] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speedMs, setSpeedMs] = useState(600);
@@ -9,7 +9,7 @@ export function useSimulation(total: number) {
   useEffect(() => {
     setStep(0);
     setPlaying(false);
-  }, [total]);
+  }, [total, resetKey]);
 
   useEffect(() => {
     if (!playing) return;
