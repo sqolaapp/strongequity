@@ -130,11 +130,11 @@ export function SimulationPanel({
       <div className="px-3 pb-3">
         <div className="brutal h-2.5 w-full overflow-hidden bg-muted p-0">
           <div
-            className={`h-full transition-all duration-300 ${blown ? "bg-destructive" : netCent >= 0 ? "bg-primary" : "bg-accent"}`}
+            className={`h-full transition-[width,background-color] duration-500 ease-out ${playing ? "bar-live" : ""} ${blown ? "bg-destructive" : netCent >= 0 ? "bg-primary" : "bg-accent"}`}
             style={{ width: `${Math.min(100, netCent >= 0 ? (step / Math.max(1, totalSteps)) * 100 : drawdownPct)}%` }}
           />
         </div>
-        <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">
+        <p className="mt-1.5 min-h-[2.4em] text-[10px] leading-snug text-muted-foreground soft-swap">
           {frame.phase === "idle"
             ? `Tekan play: semua ${entries} entry dibuka dulu sampai titik terjauh (full floating loss), baru harga berbalik menutup loss jadi profit.`
             : blown
@@ -165,7 +165,12 @@ function Cell({
   return (
     <div className="border-b-2 border-foreground/10 px-3 py-2">
       <p className="font-display text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
-      <p className={`font-mono text-xs font-bold sm:text-sm ${fg}`}>{value}</p>
+      <p className={`font-mono text-xs font-bold transition-colors duration-300 sm:text-sm ${fg}`}>
+        <span key={value} className="anim-value">
+          {value}
+        </span>
+      </p>
     </div>
   );
 }
+
