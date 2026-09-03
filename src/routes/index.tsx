@@ -67,7 +67,15 @@ function Index() {
               Kalkulator Ketahanan Equity
             </h1>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <PresetModal
+              presets={presets}
+              onLoad={handleLoad}
+              onSave={handleSave}
+              onDelete={deletePreset}
+            />
+            <ThemeToggle />
+          </div>
         </header>
 
         {note ? (
@@ -77,13 +85,6 @@ function Index() {
         ) : null}
 
         <InputPanel input={input} onChange={update} onReset={() => setInput(DEFAULT_INPUT)} />
-
-        <PresetBar
-          presets={presets}
-          onLoad={handleLoad}
-          onSave={handleSave}
-          onDelete={deletePreset}
-        />
 
         <SummaryCards result={result} entries={input.entries} />
 
