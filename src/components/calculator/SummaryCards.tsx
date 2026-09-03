@@ -1,9 +1,11 @@
-import type { CalcResult } from "@/lib/ketahanan";
-import { fmtCent, fmtLot, fmtPct, fmtPips, fmtRp, fmtUsd } from "@/lib/ketahanan";
+import type { CalcResult, Currency } from "@/lib/ketahanan";
+import { fmtLot, fmtMoney, fmtMoneySigned, fmtPct, fmtPips } from "@/lib/ketahanan";
 
 interface SummaryCardsProps {
   result: CalcResult;
   entries: number;
+  currency: Currency;
+  kurs: number;
 }
 
 function riskTone(pct: number): { label: string; className: string } {
@@ -21,7 +23,7 @@ export function StatCard({
 }: {
   label: string;
   value: string;
-  suffix?: string;
+  suffix?: string | undefined;
   tone?: "plain" | "primary" | "danger";
 }) {
   const bg =
@@ -48,20 +50,35 @@ export function StatCard({
   );
 }
 
-export function SummaryCards({ result, entries }: SummaryCardsProps) {
+export function SummaryCards({ result, entries, currency, kurs }: SummaryCardsProps) {
   const tone = riskTone(result.riskPct);
   const survived = result.blownAtEntry === null;
+  const signed = (cent: number) => fmtMoneySigned(cent, currency, kurs);
 
   return (
     <section aria-label="Ringkasan hasil" className="flex flex-col gap-2.5">
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        <StatCard label="Total Cent" value={fmtCent(result.totalCent)} suffix="¢" tone="primary" />
-        <StatCard label="Total USD" value={`$ ${fmtUsd(result.totalUsd)}`} />
-        <StatCard label="Total Rupiah" value={`Rp ${fmtRp(result.totalRp)}`} />
         <StatCard
-          label="Sisa equity"
-          value={`$ ${fmtUsd(result.equityLeftUsd)}`}
-          tone={result.equityLeftUsd < 0 ? "danger" : "plain"}
+          label="Net Profit/Loss"
+          value={signed(result.totalCent)}
+          tone={result.totalCent >= 0 ? "primary" : "danger"}
+        />
+        <StatCard
+          label="Total Loss"
+          value={fmtMoney(result.totalLossCent, currency, kurs)}
+          suffix={result.lossEntries > 0 ? `${result.lossEntries} entry` : undefined}
+          tone="danger"
+        />
+        <StatCard
+          label="Total Profit"
+          value={fmtMoney(result.totalProfitCent, currency, kurs)}
+          suffix={result.profitEntries > 0 ? `${result.profitEntries} entry` : undefined}
+          tone="primary"
+        />
+        <StatCard
+          label="Pertumbuhan %"
+          value={fmtPct(result.netProfitPct)}
+          tone={result.netProfitPct >= 0 ? "primary" : "danger"}
         />
       </div>
 
@@ -92,13 +109,13 @@ export function SummaryCards({ result, entries }: SummaryCardsProps) {
             <>
               Modal Anda menahan semua {entries} entry. Equity minimum:{" "}
               <span className="font-mono font-bold text-foreground">
-                $ {fmtUsd(result.totalUsd)}
+                {signed(result.totalLossCent)}
               </span>
               , disarankan{" "}
               <span className="font-mono font-bold text-foreground">
-                $ {fmtUsd(result.requiredUsd)}
+                {signed(result.requiredUsd * 100)}
               </span>{" "}
-              (≈ Rp {fmtRp(result.requiredRp)}) dengan tambahan buffer 20%.
+              dengan tambahan buffer 20%.
             </>
           ) : (
             <>
@@ -108,27 +125,15 @@ export function SummaryCards({ result, entries }: SummaryCardsProps) {
               </span>{" "}
               — hanya {result.survivedEntries} entry yang tertahan. Butuh minimal{" "}
               <span className="font-mono font-bold text-foreground">
-                $ {fmtUsd(result.requiredUsd)}
-              </span>{" "}
-              (≈ Rp {fmtRp(result.requiredRp)}).
+                {signed(result.requiredUsd * 100)}
+              </span>
+              .
             </>
           )}
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        <StatCard
-          label={`Total Profit (${result.profitEntries} entry)`}
-          value={`$ ${fmtUsd(result.totalProfitCent / 100)}`}
-          suffix={`+${fmtCent(result.totalProfitCent)}¢`}
-          tone="primary"
-        />
-        <StatCard
-          label={`Total Loss (${result.lossEntries} entry)`}
-          value={`$ ${fmtUsd(result.totalLossCent / 100)}`}
-          suffix={`-${fmtCent(result.totalLossCent)}¢`}
-          tone="danger"
-        />
+      <div className="grid grid-cols-3 gap-2.5">
         <div className="brutal bg-card p-2.5">
           <p className="font-display text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
             Total / Akhir Lot
@@ -144,15 +149,9 @@ export function SummaryCards({ result, entries }: SummaryCardsProps) {
           value={`${fmtPips(result.maxDistanceFirstEntryPips)} pips`}
         />
         <StatCard
-          label="Net Profit/Loss"
-          value={`$ ${fmtUsd(result.netProfitUsd)}`}
-          suffix=""
-          tone={result.netProfitUsd >= 0 ? "primary" : "danger"}
-        />
-        <StatCard
-          label="Pertumbuhan %"
-          value={fmtPct(result.netProfitPct)}
-          tone={result.netProfitPct >= 0 ? "primary" : "danger"}
+          label="Sisa equity"
+          value={signed(result.equityLeftUsd * 100)}
+          tone={result.equityLeftUsd < 0 ? "danger" : "plain"}
         />
       </div>
     </section>
