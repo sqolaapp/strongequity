@@ -67,7 +67,7 @@ function Index() {
               My Jurnal
             </p>
             <h1 className="font-display text-xl font-extrabold uppercase leading-tight tracking-tight text-foreground sm:text-2xl">
-              Kalkulator Ketahanan Equity
+              KALKULATOR EQUITY
             </h1>
           </div>
           <div className="flex items-center gap-2">
