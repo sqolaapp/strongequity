@@ -191,9 +191,9 @@ const idNum = (minFrac = 0, maxFrac = 2) =>
   });
 
 export const fmtCent = (v: number) => idNum(0, 0).format(Math.round(v));
-export const fmtUsd = (v: number) => idNum(2, 2).format(v);
+export const fmtUsd = (v: number) => idNum(0, 0).format(Math.round(v));
 export const fmtRp = (v: number) => idNum(0, 0).format(Math.round(v));
-export const fmtPct = (v: number) => `${idNum(1, 2).format(v)}%`;
+export const fmtPct = (v: number) => `${idNum(0, 0).format(Math.round(v))}%`;
 export const fmtLot = (v: number) => idNum(2, 2).format(v);
 export const fmtPips = (v: number) => idNum(0, 0).format(Math.round(v));
 
