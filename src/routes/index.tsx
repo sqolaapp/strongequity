@@ -8,6 +8,7 @@ import { PresetModal } from "@/components/calculator/PresetModal";
 import { ThemeToggle } from "@/components/calculator/ThemeToggle";
 import { usePresets } from "@/hooks/use-presets";
 import { useKurs } from "@/hooks/use-kurs";
+import { useDebounced } from "@/hooks/use-debounced";
 import {
   computeKetahanan,
   DEFAULT_INPUT,
@@ -43,7 +44,9 @@ function Index() {
   const [currency, setCurrency] = useState<Currency>("cent");
   const { presets, savePreset, deletePreset } = usePresets();
 
-  const result = useMemo(() => computeKetahanan(input), [input]);
+  const debouncedInput = useDebounced(input, 500);
+  const pending = debouncedInput !== input;
+  const result = useMemo(() => computeKetahanan(debouncedInput), [debouncedInput]);
 
   const kurs = useKurs((rate) => setInput((prev) => ({ ...prev, kurs: rate })));
 
@@ -104,31 +107,37 @@ function Index() {
           onRefreshKurs={kurs.refresh}
         />
 
+        <div
+          className={
+            pending ? "flex flex-col gap-3 opacity-50 transition-opacity" : "flex flex-col gap-3 transition-opacity"
+          }
+        >
         <SimulationPanel
           result={result}
           currency={currency}
-          kurs={input.kurs}
-          modalUsd={input.modalUsd}
+          kurs={debouncedInput.kurs}
+          modalUsd={debouncedInput.modalUsd}
         />
 
         <EntriesTable
           rows={result.rows}
-          entries={input.entries}
+          entries={debouncedInput.entries}
           lossEntries={input.lossEntries}
           onLossEntriesChange={(v) => update("lossEntries", v)}
           currency={currency}
           onCurrencyChange={setCurrency}
-          kurs={input.kurs}
+          kurs={debouncedInput.kurs}
         />
 
 
         <SummaryCards
           result={result}
-          entries={input.entries}
+          entries={debouncedInput.entries}
           currency={currency}
-          kurs={input.kurs}
-          lossEntries={input.lossEntries}
+          kurs={debouncedInput.kurs}
+          lossEntries={debouncedInput.lossEntries}
         />
+        </div>
 
         <footer className="pb-4 text-[10px] leading-relaxed text-muted-foreground">
           Rumus: lot entry ke-i = lot × multiplier^(i−1); floating loss entry ke-i = lot × (entries
