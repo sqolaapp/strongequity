@@ -74,6 +74,16 @@ function Index() {
     flash("Preset dimuat.");
   };
 
+  /** Tulis jarak khusus untuk satu langkah grid. null = kembali ikut pola. */
+  const setGapOverride = (step: number, value: number | null) => {
+    setInput((prev) => {
+      const next = { ...prev.gapOverrides };
+      if (value === null || !(value > 0)) delete next[String(step)];
+      else next[String(step)] = value;
+      return { ...prev, gapOverrides: next };
+    });
+  };
+
   const handleUpdate = (id: string) => {
     updatePreset(id, input);
     flash("Preset diperbarui dengan nilai input saat ini.");
@@ -147,6 +157,11 @@ function Index() {
               currency={currency}
               onCurrencyChange={setCurrency}
               kurs={debouncedInput.kurs}
+              startPrice={input.startPrice}
+              onStartPriceChange={(v) => update("startPrice", v)}
+              onGapChange={setGapOverride}
+              manualGapCount={Object.keys(input.gapOverrides).length}
+              onResetGaps={() => update("gapOverrides", {})}
               simNote={
                 sim.running
                   ? frame.phase === "recover" || frame.phase === "done"

@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CalcInput, Currency, SimFrame } from "@/lib/ketahanan";
-import { fmtMoney, fmtMoneySigned, fmtPct, fmtPips, simNetCentAt } from "@/lib/ketahanan";
+import {
+  buildLevels,
+  fmtMoney,
+  fmtMoneySigned,
+  fmtPct,
+  fmtPips,
+  simNetCentAt,
+  simPriceLevel,
+} from "@/lib/ketahanan";
 
 interface SimulationChartProps {
   input: CalcInput;
@@ -30,13 +38,19 @@ export function SimulationChart({
   const entries = Math.max(0, Math.round(input.entries));
   const dirSign = input.direction === "buy" ? -1 : 1;
 
-  /** Harga (pip, relatif entry ke-1) pada langkah s. BUY turun, SELL naik. */
+  const levels = useMemo(() => buildLevels(input, entries), [input, entries]);
+  const lossEntries = Math.max(0, Math.min(entries, Math.round(input.lossEntries)));
+  const retraceSteps = Math.max(0, entries - lossEntries);
+
+  /** Harga (point, relatif entry ke-1) pada langkah s. BUY turun, SELL naik. */
   const priceAt = useMemo(() => {
     return (s: number) => {
-      const adverse = s <= entries ? Math.max(0, s - 1) : Math.max(0, 2 * entries - 1 - s);
-      return dirSign * adverse * input.point;
+      const opened = Math.min(entries, Math.max(0, s));
+      const retrace = Math.max(0, s - entries);
+      const level = simPriceLevel(levels, entries, lossEntries, opened, retrace, retraceSteps);
+      return dirSign * level;
     };
-  }, [entries, dirSign, input.point]);
+  }, [levels, entries, lossEntries, retraceSteps, dirSign]);
 
   const history = useMemo(
     () => Array.from({ length: totalSteps + 1 }, (_, s) => simNetCentAt(input, s)),

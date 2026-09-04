@@ -6,9 +6,11 @@ interface NumberFieldProps {
   hint?: string;
   value: number;
   onChange: (v: number) => void;
+  /** Versi kecil untuk dipakai di baris kontrol (bukan kartu Input). */
+  compact?: boolean;
 }
 
-export function NumberField({ label, hint, value, onChange }: NumberFieldProps) {
+export function NumberField({ label, hint, value, onChange, compact = false }: NumberFieldProps) {
   const [text, setText] = useState(String(value).replace(".", ","));
 
   useEffect(() => {
@@ -24,15 +26,21 @@ export function NumberField({ label, hint, value, onChange }: NumberFieldProps) 
   };
 
   return (
-    <label className="flex flex-col gap-1">
-      <span className="font-display text-[10px] font-bold uppercase tracking-widest text-foreground">
+    <label className={`flex flex-col ${compact ? "gap-0.5" : "gap-1"}`}>
+      <span
+        className={`font-display font-bold uppercase tracking-widest ${
+          compact ? "text-[9px] text-muted-foreground" : "text-[10px] text-foreground"
+        }`}
+      >
         {label}
       </span>
       <input
         inputMode="decimal"
         value={text}
         onChange={(e) => commit(e.target.value)}
-        className="brutal w-full bg-background px-2 py-1.5 font-mono text-sm font-semibold text-foreground outline-none focus:bg-primary/20"
+        className={`brutal w-full bg-background font-mono font-semibold text-foreground outline-none focus:bg-primary/20 ${
+          compact ? "px-1.5 py-1 text-right text-[10px] font-bold" : "px-2 py-1.5 text-sm"
+        }`}
       />
       {hint ? (
         <span className="text-[10px] leading-tight text-muted-foreground">{hint}</span>

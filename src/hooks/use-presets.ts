@@ -96,12 +96,19 @@ export const SAMPLE_PRESETS: SamplePreset[] = [
   sample(M13_14, "CENT - MARTI 1,3 - ENTRIES 14 - LOSS 4", 1.3, 14, 4, 5083),
 ];
 
+/**
+ * Cukup validasi field inti saja. Field yang ditambahkan belakangan sengaja
+ * TIDAK diwajibkan supaya preset lama tidak ikut terbuang saat model berkembang
+ * (nilai yang hilang diisi dari DEFAULT_INPUT waktu preset dimuat).
+ */
+const REQUIRED_KEYS = ["point", "lot", "multiplier", "entries", "modalUsd"] as const;
+
 function isCalcInput(v: unknown): v is CalcInput {
   if (!v || typeof v !== "object") return false;
   const obj = v as Record<string, unknown>;
   const dir = obj["direction"];
-  if (dir !== "buy" && dir !== "sell") return false;
-  return Object.keys(DEFAULT_INPUT).every((k) => k === "direction" || typeof obj[k] === "number");
+  if (dir !== undefined && dir !== "buy" && dir !== "sell") return false;
+  return REQUIRED_KEYS.every((k) => typeof obj[k] === "number");
 }
 
 function read(): Preset[] {
